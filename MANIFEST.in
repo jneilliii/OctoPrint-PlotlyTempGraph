@@ -1,0 +1,4 @@
+include README.md
+recursive-include octoprint_plotlytempgraph/templates *
+recursive-include octoprint_plotlytempgraph/translations *
+recursive-include octoprint_plotlytempgraph/static *
