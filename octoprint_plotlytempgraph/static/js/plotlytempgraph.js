@@ -46,12 +46,12 @@ $(function() {
 					Plotly.addTraces('plotlytempgraph',{name:key,x:[[timestamp]],y:[[data[key][0]]],mode: 'lines'});
 					if(typeof data[key][1] !== 'undefined') {
 						var trace_color = pusher.color(d3colors(index)).tint(0.5).html();
-						Plotly.addTraces('plotlytempgraph',{name:key,x:[[timestamp]],y:[[data[key][0]]],mode: 'lines',line:{color: trace_color}});
+						Plotly.addTraces('plotlytempgraph',{name:key,x:[[timestamp]],y:[[data[key][1]]],mode: 'lines',line:{color: trace_color}});
 					}
 				} else {
 					Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][0]]]}, [index]);
 					if(typeof data[key][1] !== 'undefined') {
-						Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][0]]]}, [index]);
+						Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][1]]]}, [index]);
 					}
 				}
 			}
