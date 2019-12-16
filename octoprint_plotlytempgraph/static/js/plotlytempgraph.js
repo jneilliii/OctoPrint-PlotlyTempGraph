@@ -43,13 +43,13 @@ $(function() {
 				var index = gd.findIndex( ({ name }) => name === key );
 				if (index < 0) {
 					Plotly.addTraces('plotlytempgraph',{name:key,x:[[timestamp]],y:[[data[key][0]]],mode: 'lines'});
-					if(data[key][2]) {
+					if(data[key][1]) {
 						var trace_color = pusher.color(d3colors(index)).tint(0.5).html();						
 						Plotly.addTraces('plotlytempgraph',{name:key,x:[[timestamp]],y:[[data[key][0]]],mode: 'lines',line:{color: trace_color}});
 					}
 				} else {
 					Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][0]]]}, [index]);
-					if(data[key][2]) {
+					if(data[key][1]) {
 						Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][0]]]}, [index]);
 					}
 				}
