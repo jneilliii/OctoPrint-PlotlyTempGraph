@@ -46,6 +46,7 @@ $(function() {
 					console.log('Adding line for "' + key + ' Actual" with color "' + d3colors(actual_index));
 					Plotly.addTraces('plotlytempgraph',{name:key + ' Actual',x:[[timestamp]],y:[[data[key][0]]],mode: 'lines'});
 					if(typeof data[key][1] !== 'undefined' && target_index < 0) {
+						actual_index = gd.findIndex( ({ name }) => name === key + ' Actual');
 						var target_color = pusher.color(d3colors(actual_index)).tint(0.5).html();
 						console.log('Adding line for "' + key + ' Target" with color "' + target_color);
 						Plotly.addTraces('plotlytempgraph',{name:key + ' Target',x:[[timestamp]],y:[[data[key][1]]],mode: 'lines',line:{color: target_color}});
