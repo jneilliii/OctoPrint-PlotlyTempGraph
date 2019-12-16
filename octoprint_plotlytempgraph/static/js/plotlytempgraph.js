@@ -45,7 +45,7 @@ $(function() {
 				if (actual_index < 0) {
 					Plotly.addTraces('plotlytempgraph',{name:key + ' Actual',x:[[timestamp]],y:[[data[key][0]]],mode: 'lines'});
 					if(typeof data[key][1] !== 'undefined' && target_index < 0) {
-						var target_color = pusher.color(d3colors(index)).tint(0.5).html();
+						var target_color = pusher.color(d3colors(actual_index)).tint(0.5).html();
 						Plotly.addTraces('plotlytempgraph',{name:key + ' Target',x:[[timestamp]],y:[[data[key][1]]],mode: 'lines',line:{color: target_color}});
 					}
 				} else {
