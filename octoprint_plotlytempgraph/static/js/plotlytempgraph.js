@@ -28,10 +28,6 @@ $(function() {
 			showTips: false
 		};
 
-		self.trace_exists = function(){
-			
-		}
-
 		Plotly.newPlot('plotlytempgraph', self.data, self.layout, self.options);
 
 		self.onDataUpdaterPluginMessage = function(plugin, data) {

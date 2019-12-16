@@ -21,7 +21,7 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 			js=["js/plotly-latest.min.js","js/plotlytempgraph.js"]
 		)
 
-	## Temperatures received hook
+	## Temperatures received hook and add_trace helper
 
 	def temp_received(self, comm, parsed_temps):
 		self._plugin_manager.send_plugin_message(self._identifier, parsed_temps)
