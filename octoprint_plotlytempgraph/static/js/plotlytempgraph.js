@@ -37,13 +37,21 @@ $(function() {
 			var timestamp = new Date();
 
 			var gd = document.getElementById('plotlytempgraph').data;
+			var d3colors = Plotly.d3.scale.category10();
 			
 			for (var key in data) {
 				var index = gd.findIndex( ({ name }) => name === key );
 				if (index < 0) {
 					Plotly.addTraces('plotlytempgraph',{name:key,x:[[timestamp]],y:[[data[key][0]]],mode: 'lines'});
+					if(data[key][2]) {
+						var trace_color = pusher.color(d3colors(index)).tint(0.5).html();						
+						Plotly.addTraces('plotlytempgraph',{name:key,x:[[timestamp]],y:[[data[key][0]]],mode: 'lines',line:{color: trace_color}});
+					}
 				} else {
 					Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][0]]]}, [index]);
+					if(data[key][2]) {
+						Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][0]]]}, [index]);
+					}
 				}
 			}
 		};
