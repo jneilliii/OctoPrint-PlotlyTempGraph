@@ -40,18 +40,18 @@ $(function() {
 			var d3colors = Plotly.d3.scale.category10();
 			
 			for (var key in data) {
-				var index = gd.findIndex( ({ name }) => name === key );
-				if (index < 0) {
-					console.log(data[key]);
-					Plotly.addTraces('plotlytempgraph',{name:key,x:[[timestamp]],y:[[data[key][0]]],mode: 'lines'});
-					if(typeof data[key][1] !== 'undefined') {
-						var trace_color = pusher.color(d3colors(index)).tint(0.5).html();
-						Plotly.addTraces('plotlytempgraph',{name:key,x:[[timestamp]],y:[[data[key][1]]],mode: 'lines',line:{color: trace_color}});
+				var actual_index = gd.findIndex( ({ name }) => name === key + ' Actual');
+				var target_index = gd.findIndex( ({ name }) => name === key + ' Target');
+				if (actual_index < 0) {
+					Plotly.addTraces('plotlytempgraph',{name:key + ' Actual',x:[[timestamp]],y:[[data[key][0]]],mode: 'lines'});
+					if(typeof data[key][1] !== 'undefined' && target_index < 0) {
+						var target_color = pusher.color(d3colors(index)).tint(0.5).html();
+						Plotly.addTraces('plotlytempgraph',{name:key + ' Target',x:[[timestamp]],y:[[data[key][1]]],mode: 'lines',line:{color: target_color}});
 					}
 				} else {
-					Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][0]]]}, [index]);
+					Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][0]]]}, [actual_index]);
 					if(typeof data[key][1] !== 'undefined') {
-						Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][1]]]}, [index]);
+						Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][1]]]}, [target_index]);
 					}
 				}
 			}
