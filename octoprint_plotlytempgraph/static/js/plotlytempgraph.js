@@ -36,24 +36,16 @@ $(function() {
 			}
 			var timestamp = new Date();
 
-			var gd = document.getElementById('plotlytempgraph').data;
 			var d3colors = Plotly.d3.scale.category10();
-			
+
 			for (var key in data) {
-				var actual_index = gd.findIndex( ({ name }) => name === key + ' Actual');
-				var target_index = gd.findIndex( ({ name }) => name === key + ' Target');
-				if (actual_index < 0) {
-					Plotly.addTraces('plotlytempgraph',{name:key + ' Actual',x:[[timestamp]],y:[[data[key][0]]],mode: 'lines'});
-					if(typeof data[key][1] !== 'undefined' && target_index < 0) {
-						actual_index = gd.findIndex( ({ name }) => name === key + ' Actual');
-						var target_color = pusher.color(d3colors(actual_index)).tint(0.5).html();
-						console.log('Adding line for "' + key + ' Target" with color "' + target_color);
-						Plotly.addTraces('plotlytempgraph',{name:key + ' Target',x:[[timestamp]],y:[[data[key][1]]],mode: 'lines',line:{color: target_color}});
-					}
-				} else {
-					Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][0]]]}, [actual_index]);
-					if(typeof data[key][1] !== 'undefined') {
-						Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][1]]]}, [target_index]);
+				for(var i=0;i<data[key].length;i++){
+					var gd = document.getElementById('plotlytempgraph').data;
+					var index = gd.findIndex( ({ name }) => name === key);
+					if(index < 0 && data[key][i]){
+						Plotly.addTraces('plotlytempgraph',{name:key,x:[[timestamp]],y:[[data[key][i]]],mode: 'lines'});
+					} else {
+						Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][i]]]}, [index]);
 					}
 				}
 			}
