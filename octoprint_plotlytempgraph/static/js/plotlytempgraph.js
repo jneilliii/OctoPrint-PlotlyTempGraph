@@ -17,7 +17,7 @@ $(function() {
 			legend: {"orientation": "h"},
 			xaxis: { type:"date", tickformat:"%H:%M:%S", automargin: true, title: {standoff: 0},linecolor: 'black', linewidth: 2, mirror: true},
 			yaxis: { type:"linear", automargin: true, title: {standoff: 0},linecolor: 'black', linewidth: 2, mirror: true },
-			margin: {l:5,r:30,b:0,t:20,pad:5}
+			margin: {l:35,r:30,b:0,t:20,pad:5}
 		};
 		self.options = {
 			showLink: false,
