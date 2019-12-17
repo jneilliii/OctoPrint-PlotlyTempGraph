@@ -44,8 +44,10 @@ $(function() {
 					var index = gd.findIndex( ({ name }) => name === key);
 					if(index < 0 && data[key][i]){
 						Plotly.addTraces('plotlytempgraph',{name:key,x:[[timestamp]],y:[[data[key][i]]],mode: 'lines'});
-					} else {
+					} else if(index >= 0) {
 						Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][i]]]}, [index]);
+					} else {
+						console.log('Not graphing ' + data[key][i]);
 					}
 				}
 			}
