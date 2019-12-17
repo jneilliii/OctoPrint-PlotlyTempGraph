@@ -41,9 +41,9 @@ $(function() {
 			for (var key in data) {
 				for(var i=0;i<data[key].length;i++){
 					var gd = document.getElementById('plotlytempgraph').data;
-					var index = gd.findIndex( ({ name }) => name === key);
+					var index = gd.findIndex( ({ name }) => name === key + '_' + i);
 					if(index < 0 && data[key][i]){
-						Plotly.addTraces('plotlytempgraph',{name:key,x:[[timestamp]],y:[[data[key][i]]],mode: 'lines'});
+						Plotly.addTraces('plotlytempgraph',{name:key + '_' + i,x:[[timestamp]],y:[[data[key][i]]],mode: 'lines'});
 					} else if(index >= 0) {
 						Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][i]]]}, [index]);
 					} else {
