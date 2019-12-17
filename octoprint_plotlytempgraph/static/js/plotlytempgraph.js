@@ -41,13 +41,20 @@ $(function() {
 			for (var key in data) {
 				for(var i=0;i<data[key].length;i++){
 					var gd = document.getElementById('plotlytempgraph').data;
-					var index = gd.findIndex( ({ name }) => name === key + '_' + i);
-					if(index < 0 && data[key][i]){
-						Plotly.addTraces('plotlytempgraph',{name:key + '_' + i,x:[[timestamp]],y:[[data[key][i]]],mode: 'lines'});
-					} else if(index >= 0) {
-						Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][i]]]}, [index]);
-					} else {
-						console.log('Not graphing ' + data[key][i]);
+					if(i == 0){
+						var index = gd.findIndex( ({ name }) => name === key + ' Actual');
+						if(index < 0){
+							Plotly.addTraces('plotlytempgraph',{name:key + ' Actual',x:[[timestamp]],y:[[data[key][i]]],mode: 'lines'});
+						} else {
+							Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][i]]]}, [index]);
+						}
+					} else if(i == 1) {
+						var index = gd.findIndex( ({ name }) => name === key + ' Target');
+						if(index < 0){
+							Plotly.addTraces('plotlytempgraph',{name:key + ' Target',x:[[timestamp]],y:[[data[key][i]]],mode: 'lines'});
+						} else {
+							Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][i]]]}, [index]);
+						}
 					}
 				}
 			}
