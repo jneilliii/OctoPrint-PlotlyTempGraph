@@ -38,7 +38,7 @@ $(function() {
 
 			var gd = document.getElementById('plotlytempgraph').data;
 			var d3colors = Plotly.d3.scale.category10();
-			
+
 			for (var key in data) {
 				var actual_index = gd.findIndex( ({ name }) => name === key + ' Actual');
 				var target_index = gd.findIndex( ({ name }) => name === key + ' Target');
