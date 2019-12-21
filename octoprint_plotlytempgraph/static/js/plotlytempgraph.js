@@ -9,6 +9,7 @@ $(function() {
 		var self = this;
 
 		self.loginStateViewModel = parameters[0];
+		self.settingsViewModel = parameters[1];
 
 		self.data = [];
 		self.layout = {
@@ -30,40 +31,59 @@ $(function() {
 
 		Plotly.newPlot('plotlytempgraph', self.data, self.layout, self.options);
 
-		self.onDataUpdaterPluginMessage = function(plugin, data) {
-			if (plugin != "plotlytempgraph") {
-				return;
+		self.fromCurrentData = function(data) {
+			if(data.temps.length > 0){
+				self.plotTraces(data.temps);
 			}
-			var timestamp = new Date();
+		};
 
-			var d3colors = Plotly.d3.scale.category10();
-
-			for (var key in data) {
-				for(var i=0;i<data[key].length;i++){
-					var gd = document.getElementById('plotlytempgraph').data;
-					if(i == 0){
-						var index = gd.findIndex( ({ name }) => name === key + ' Actual');
-						if(index < 0){
-							Plotly.addTraces('plotlytempgraph',{name:key + ' Actual',x:[[timestamp]],y:[[data[key][i]]],mode: 'lines'});
-						} else {
-							Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][i]]]}, [index]);
-						}
-					} else if(i == 1) {
-						var index = gd.findIndex( ({ name }) => name === key + ' Target');
-						if(index < 0){
-							Plotly.addTraces('plotlytempgraph',{name:key + ' Target',x:[[timestamp]],y:[[data[key][i]]],mode: 'lines'});
-						} else {
-							Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[data[key][i]]]}, [index]);
+		self.fromHistoryData = function(data) {
+			if(data.temps.length > 0){
+				var temperatures = data.temps;
+				console.log(temperatures);
+				for(var key in temperatures[temperatures.length - 1]){
+					if(key !== 'time'){
+						for(var subkey in temperatures[0][key]){
+							var x_data = temperatures.map(function(currentValue, index, arr){return new Date(currentValue.time * 1000);});
+							var y_data = temperatures.map(function(currentValue, index, arr){return currentValue[key][subkey];});
+							if(subkey == 'actual'){
+								Plotly.addTraces('plotlytempgraph',{name:subkey + ' ' + key,x:x_data,y:y_data,mode: 'lines'});
+							} else if(subkey == 'target'){
+								Plotly.addTraces('plotlytempgraph',{name: subkey + ' ' + key,x: x_data,y: y_data,mode: 'lines'});
+							}
 						}
 					}
 				}
 			}
 		};
+
+		self.plotTraces = function(temperatures) {
+			for(var i=0;i<temperatures.length;i++){
+				for (var key in temperatures[i]) {
+					var timestamp = new Date(temperatures[i].time * 1000);
+					if(key !== 'time'){
+						for(var subkey in temperatures[i][key]){
+							var gd = document.getElementById('plotlytempgraph').data;
+							var index = gd.findIndex( ({ name }) => name === subkey + ' ' + key);
+							if(index < 0){
+								if(subkey == 'actual'){
+									Plotly.addTraces('plotlytempgraph',{name:subkey + ' ' + key,x:[[timestamp]],y:[[temperatures[i][key][subkey]]],mode: 'lines'});
+								} else if(subkey == 'target'){
+									Plotly.addTraces('plotlytempgraph',{name:subkey + ' ' + key,x:[[timestamp]],y:[[temperatures[i][key][subkey]]],mode: 'lines'});
+								}
+							} else {
+								Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]}, [index]);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	OCTOPRINT_VIEWMODELS.push({
 		construct: PlotlytempgraphViewModel,
-		dependencies: [ "loginStateViewModel" ],
+		dependencies: [ "loginStateViewModel", "settingsViewModel" ],
 		elements: [ /* ... */ ]
 	});
 });

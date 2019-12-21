@@ -24,7 +24,7 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 	## Temperatures received hook and add_trace helper
 
 	def temp_received(self, comm, parsed_temps):
-		self._plugin_manager.send_plugin_message(self._identifier, parsed_temps)
+		# self._plugin_manager.send_plugin_message(self._identifier, parsed_temps)
 		return parsed_temps
 
 	##~~ Softwareupdate hook
