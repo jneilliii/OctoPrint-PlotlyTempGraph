@@ -21,11 +21,12 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 			js=["js/plotly-latest.min.js","js/plotlytempgraph.js"]
 		)
 
-	## Temperatures received hook and add_trace helper
-
-	def temp_received(self, comm, parsed_temps):
-		# self._plugin_manager.send_plugin_message(self._identifier, parsed_temps)
-		return parsed_temps
+	def get_template_configs(self):
+		return [
+			dict(type="tab", name="Temperature", template="plotlytempgraph_tab.jinja2", replaces="temperature"),
+			dict(type="settings", template="plotlytempgraph_settings.jinja2", replaces="temperature", custom_bindings=False),
+			dict(type="generic", template="plotlytempgraph.jinja2")
+		]
 
 	##~~ Softwareupdate hook
 
@@ -55,7 +56,6 @@ def __plugin_load__():
 
 	global __plugin_hooks__
 	__plugin_hooks__ = {
-		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
-		"octoprint.comm.protocol.temperatures.received": __plugin_implementation__.temp_received
+		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
 	}
 
