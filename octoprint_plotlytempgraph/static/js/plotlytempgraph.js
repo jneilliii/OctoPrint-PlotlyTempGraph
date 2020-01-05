@@ -245,7 +245,6 @@ $(function() {
 			}
 			if(data.temps.length > 0){
 				var temperatures = data.temps;
-				console.log(temperatures);
 				for(var key in temperatures[temperatures.length - 1]){
 					if(key !== 'time'){
 						if(typeof self.trace_color_index[key] === 'undefined') {
@@ -257,7 +256,7 @@ $(function() {
 							var y_data = temperatures.map(function(currentValue, index, arr){return currentValue[key][subkey];});
 							if(subkey == 'actual'){
 								Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey, x: x_data, y: y_data, mode: 'lines', line: {color: self.trace_color_index[key]}, legendgroup: key});
-							} else if(subkey == 'target'){
+							} else if(subkey == 'target' && y_data.filter(function(el){return el != null;}).length > 0){
 								Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey,x: x_data,y: y_data,mode: 'lines', line: {color: pusher.color(self.trace_color_index[key]).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
 							}
 						}
@@ -282,7 +281,7 @@ $(function() {
 							if(index < 0){
 								if(subkey == 'actual'){
 									Plotly.addTraces('plotlytempgraph',{name:key + ' ' + subkey,x:[[timestamp]],y:[[temperatures[i][key][subkey]]],mode: 'lines', line: {color: self.trace_color_index[key]}, legendgroup: key});
-								} else if(subkey == 'target'){
+								} else if(subkey == 'target' && temperatures[i][key][subkey] != null){
 									Plotly.addTraces('plotlytempgraph',{name:key + ' ' + subkey,x:[[timestamp]],y:[[temperatures[i][key][subkey]]],mode: 'lines', line: {color: pusher.color(self.trace_color_index[key]).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
 								}
 							} else {

@@ -3,6 +3,7 @@ import random
 def callback(comm, parsed_temps):
 	parsed_temps.update(test = (random.uniform(99,101),100))
 	parsed_temps.update(test2 = (random.uniform(199,201),200))
+	parsed_temps.update(test3 = (random.uniform(55,57),None))
 	return parsed_temps
 
 __plugin_name__ = "Test Plotly Graph"
