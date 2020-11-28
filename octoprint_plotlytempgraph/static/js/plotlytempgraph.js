@@ -39,7 +39,7 @@ $(function() {
 			showTips: false
 		};
 		self.legend_visible = ko.observable(false);
-		
+
 		self.toggle_legend = function(){
 			self.legend_visible(self.legend_visible() ? false : true);
 			Plotly.relayout('plotlytempgraph',{showlegend: self.legend_visible()});
@@ -267,6 +267,9 @@ $(function() {
 		};
 
 		self.plotTraces = function(temperatures) {
+			var gd = document.getElementById('plotlytempgraph').data;
+            const cutOffDate = (element) => element < new moment().subtract(parseInt(self.temperature_cutoff()), 'minutes').toDate();
+            let cutOffCount = gd[0].x.length - gd[0].x.findIndex(cutOffDate);
 			for(var i=0;i<temperatures.length;i++){
 				for (var key in temperatures[i]) {
 					var timestamp = new Date(temperatures[i].time * 1000);
@@ -276,7 +279,6 @@ $(function() {
 							self.trace_color_incrementer++
 						}
 						for(var subkey in temperatures[i][key]){
-							var gd = document.getElementById('plotlytempgraph').data;
 							var index = gd.findIndex( ({ name }) => name === key + ' ' + subkey);
 							if(index < 0){
 								if(subkey == 'actual'){
@@ -285,7 +287,7 @@ $(function() {
 									Plotly.addTraces('plotlytempgraph',{name:key + ' ' + subkey,x:[[timestamp]],y:[[temperatures[i][key][subkey]]],mode: 'lines', line: {color: pusher.color(self.trace_color_index[key]).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
 								}
 							} else {
-								Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]}, [index]);
+								Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]}, [index], (cutOffCount > 0) ? cutOffCount : null);
 							}
 						}
 					}
