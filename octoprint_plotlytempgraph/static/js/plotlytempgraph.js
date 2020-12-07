@@ -36,7 +36,8 @@ $(function() {
 			displaylogo: false,
 			displayModeBar: false,
 			editable: false,
-			showTips: false
+			showTips: false,
+			responsive: true
 		};
 		self.legend_visible = ko.observable(false);
 
