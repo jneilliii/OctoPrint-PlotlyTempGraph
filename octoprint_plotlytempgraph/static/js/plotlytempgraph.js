@@ -798,6 +798,13 @@ $(function() {
 			//self.initOrUpdate();
 		};
 
+		self.onAfterTabChange = function(current, previous){
+			if (current !== "#tab_plugin_plotlytempgraph") {
+				return
+			}
+			// hack for UI Customizer plugin conflict on sizing
+			Plotly.relayout('plotlytempgraph',{});
+		}
 	}
 
 	OCTOPRINT_VIEWMODELS.push({
