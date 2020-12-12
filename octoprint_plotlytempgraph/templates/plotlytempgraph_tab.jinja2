@@ -1,6 +1,6 @@
 {% if enableTemperatureGraph %}
 <div class="row-fluid" data-bind="visible: loginState.isUser()">
-	<div class="row-fluid" id="plotlytempgraph" style="min-width: 600px;"></div>
+	<div class="row-fluid" id="plotlytempgraph" style=""></div>
 </div>
 <div class="row-fluid" data-bind="visible: loginState.isUser()">
 	<div class="btn-group pull-right">
@@ -9,7 +9,6 @@
 </div>
 {% endif %}
 <div class="row-fluid">
-
     <table id="temperature-table" class="table table-bordered table-hover" data-bind="visible: loginState.hasPermissionKo(access.permissions.CONTROL)">
         <tr>
             <th class="temperature_tool"></th>
