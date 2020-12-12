@@ -41,7 +41,21 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 				user="jneilliii",
 				repo="OctoPrint-PlotlyTempGraph",
 				current=self._plugin_version,
-
+                stable_branch=dict(
+                    name="Stable", branch="master", comittish=["master"]
+                ),
+                prerelease_branches=[
+                    dict(
+                        name="Release Candidate",
+                        branch="rc",
+                        comittish=["rc", "master"],
+                    ),
+                    dict(
+                        name="Development",
+                        branch="develop",
+                        comittish=["develop", "rc", "master"],
+                    )
+                ],
 				# update method: pip
 				pip="https://github.com/jneilliii/OctoPrint-PlotlyTempGraph/archive/{target_version}.zip"
 			)
