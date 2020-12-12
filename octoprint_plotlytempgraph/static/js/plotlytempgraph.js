@@ -2,6 +2,8 @@ $(function() {
 	function PlotlytempgraphViewModel(parameters) {
 		var self = this;
 
+		self.debugLogs = false;
+
 		self.loginState = parameters[0];
 		self.settingsViewModel = parameters[1];
 		self.access = parameters[2];
@@ -246,19 +248,40 @@ $(function() {
 			}
 			if(data.temps.length > 0){
 				var temperatures = data.temps;
-				for(var key in temperatures[temperatures.length - 1]){
+				let checkIndex = temperatures.length - 1; // Dak0r: was looping length-1 but reading "0" before
+				for(var key in temperatures[checkIndex]){
 					if(key !== 'time'){
 						if(typeof self.trace_color_index[key] === 'undefined') {
 							self.trace_color_index[key] = self.trace_color_lookup(self.trace_color_incrementer);
 							self.trace_color_incrementer++
 						}
-						for(var subkey in temperatures[0][key]){
-							var x_data = temperatures.map(function(currentValue, index, arr){return new Date(currentValue.time * 1000);});
-							var y_data = temperatures.map(function(currentValue, index, arr){return currentValue[key][subkey];});
-							if(subkey == 'actual'){
-								Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey, x: x_data, y: y_data, mode: 'lines', line: {color: self.trace_color_index[key]}, legendgroup: key});
-							} else if(subkey == 'target' && y_data.filter(function(el){return el != null;}).length > 0){
-								Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey,x: x_data,y: y_data,mode: 'lines', line: {color: pusher.color(self.trace_color_index[key]).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
+						if(self.debugLogs){
+							console.log("Will plot history: "+key)
+							console.log("Plot Details: "+JSON.stringify(temperatures[checkIndex][key]));
+						}
+						for(var subkey in temperatures[checkIndex][key]){
+							if(temperatures[checkIndex][key][subkey] === null){
+								if(self.debugLogs){ console.log("Skipping null value for: "+key+" - "+subkey); }
+								continue;
+							}
+							try{
+								var x_data = temperatures.map(function(currentValue, index, arr){return new Date(currentValue.time * 1000);});
+								var y_data = temperatures.map(function(currentValue, index, arr){
+									// Dak0r: Values might have not always existed, assuming 0 in that case
+									if(currentValue[key]!==undefined){
+										return currentValue[key][subkey];
+									}else{
+										return 0;
+									}
+								});
+								if(subkey == 'actual'){
+									Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey, x: x_data, y: y_data, mode: 'lines', line: {color: self.trace_color_index[key]}, legendgroup: key});
+								} else if(subkey == 'target' && y_data.filter(function(el){return el != null;}).length > 0){
+									Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey,x: x_data,y: y_data,mode: 'lines', line: {color: pusher.color(self.trace_color_index[key]).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
+								}
+							}catch(e){
+								console.error("Error plotting history data for "+key);
+								console.error(e);
 							}
 						}
 					}
@@ -269,8 +292,15 @@ $(function() {
 
 		self.plotTraces = function(temperatures) {
 			var gd = document.getElementById('plotlytempgraph').data;
-            const cutOffDate = (element) => element < new moment().subtract(parseInt(self.temperature_cutoff()), 'minutes').toDate();
-            let cutOffCount = gd[0].x.length - gd[0].x.findIndex(cutOffDate);
+			const cutOffDate = (element) => element < new moment().subtract(parseInt(self.temperature_cutoff()), 'minutes').toDate();
+
+			let cutOffCount = 0; // Dak0r: This sometimes throws an exception, haven't looked into it, yet. Using 0 as default if it happens
+			try { 
+				cutOffCount = gd[0].x.length - gd[0].x.findIndex(cutOffDate);
+			}catch(e){
+				console.error("Error getting cutOffCount: "+e);
+			}
+			if(self.debugLogs){ console.log("Will loop: temperatures"); }
 			for(var i=0;i<temperatures.length;i++){
 				for (var key in temperatures[i]) {
 					var timestamp = new Date(temperatures[i].time * 1000);
@@ -280,6 +310,10 @@ $(function() {
 							self.trace_color_incrementer++
 						}
 						for(var subkey in temperatures[i][key]){
+							if(temperatures[i][key][subkey] === null){
+								if(self.debugLogs){ console.log("Skipping null value for: "+key+" - "+subkey); }
+								continue;
+							}
 							var index = gd.findIndex( ({ name }) => name === key + ' ' + subkey);
 							if(index < 0){
 								if(subkey == 'actual'){
@@ -404,9 +438,11 @@ $(function() {
 
 			// convert data
 			_.each(data, function(d) {
+				if(self.debugLogs){ console.log("looping data: "+JSON.stringify(d)); }
 				var timeDiff = (serverTime - d.time) * 1000;
 				var time = clientTime - timeDiff;
 				_.each(types, function(type) {
+					if(self.debugLogs){ console.log("looping type: "+type); }
 					if (!d[type]) return;
 					result[type].actual.push([time, d[type].actual]);
 					result[type].target.push([time, d[type].target]);
@@ -424,7 +460,6 @@ $(function() {
 					result[d].target = _.filter(result[d].target, filterOld);
 				});
 			}
-
 			return result;
 		};
 
