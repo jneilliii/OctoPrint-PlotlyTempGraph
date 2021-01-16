@@ -18,7 +18,7 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 
 	def get_assets(self):
 		return dict(
-			js=["js/plotly-latest.min.js","js/plotlytempgraph.js"]
+			js=["js/plotly-latest.min.js", "js/plotlytempgraph.js"]
 		)
 
 	def get_template_configs(self):

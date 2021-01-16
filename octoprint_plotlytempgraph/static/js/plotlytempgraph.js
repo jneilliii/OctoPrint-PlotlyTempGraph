@@ -2,8 +2,6 @@ $(function() {
 	function PlotlytempgraphViewModel(parameters) {
 		var self = this;
 
-		self.debugLogs = false;
-
 		self.loginState = parameters[0];
 		self.settingsViewModel = parameters[1];
 		self.access = parameters[2];
@@ -255,13 +253,8 @@ $(function() {
 							self.trace_color_index[key] = self.trace_color_lookup(self.trace_color_incrementer);
 							self.trace_color_incrementer++
 						}
-						if(self.debugLogs){
-							console.log("Will plot history: "+key)
-							console.log("Plot Details: "+JSON.stringify(temperatures[checkIndex][key]));
-						}
 						for(var subkey in temperatures[checkIndex][key]){
 							if(temperatures[checkIndex][key][subkey] === null){
-								if(self.debugLogs){ console.log("Skipping null value for: "+key+" - "+subkey); }
 								continue;
 							}
 							try{
@@ -295,12 +288,10 @@ $(function() {
 			const cutOffDate = (element) => element < new moment().subtract(parseInt(self.temperature_cutoff()), 'minutes').toDate();
 
 			let cutOffCount = 0; // Dak0r: This sometimes throws an exception, haven't looked into it, yet. Using 0 as default if it happens
-			try { 
-				cutOffCount = gd[0].x.length - gd[0].x.findIndex(cutOffDate);
-			}catch(e){
-				console.error("Error getting cutOffCount: "+e);
-			}
-			if(self.debugLogs){ console.log("Will loop: temperatures"); }
+
+            if(gd.length) {
+                cutOffCount = gd[0].x.length - gd[0].x.findIndex(cutOffDate);
+            }
 			for(var i=0;i<temperatures.length;i++){
 				for (var key in temperatures[i]) {
 					var timestamp = new Date(temperatures[i].time * 1000);
@@ -311,18 +302,36 @@ $(function() {
 						}
 						for(var subkey in temperatures[i][key]){
 							if(temperatures[i][key][subkey] === null){
-								if(self.debugLogs){ console.log("Skipping null value for: "+key+" - "+subkey); }
 								continue;
 							}
 							var index = gd.findIndex( ({ name }) => name === key + ' ' + subkey);
-							if(index < 0){
-								if(subkey == 'actual'){
-									Plotly.addTraces('plotlytempgraph',{name:key + ' ' + subkey,x:[[timestamp]],y:[[temperatures[i][key][subkey]]],mode: 'lines', line: {color: self.trace_color_index[key]}, legendgroup: key});
-								} else if(subkey == 'target' && temperatures[i][key][subkey] != null){
-									Plotly.addTraces('plotlytempgraph',{name:key + ' ' + subkey,x:[[timestamp]],y:[[temperatures[i][key][subkey]]],mode: 'lines', line: {color: pusher.color(self.trace_color_index[key]).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
-								}
-							} else {
-								Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]}, [index], (cutOffCount > 0) ? cutOffCount : null);
+							if(index < 0) {
+                                if (subkey == 'actual') {
+                                    Plotly.addTraces('plotlytempgraph', {
+                                        name: key + ' ' + subkey,
+                                        x: [timestamp,timestamp],
+                                        y: [temperatures[i][key][subkey],temperatures[i][key][subkey]],
+                                        mode: 'lines',
+                                        line: {color: self.trace_color_index[key]},
+                                        legendgroup: key
+                                    });
+                                } else if (subkey == 'target' && temperatures[i][key][subkey] != null) {
+                                    Plotly.addTraces('plotlytempgraph', {
+                                        name: key + ' ' + subkey,
+                                        x: [timestamp,timestamp],
+                                        y: [temperatures[i][key][subkey],temperatures[i][key][subkey]],
+                                        mode: 'lines',
+                                        line: {
+                                            color: pusher.color(self.trace_color_index[key]).tint(0.5).html(),
+                                            dash: 'dot'
+                                        },
+                                        legendgroup: key
+                                    });
+                                } else {
+                                    console.log("Don't know what to do: " + key + " - " + subkey + " - " + cutOffCount + " - " + index);
+                                }
+                            } else {
+								Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]}, [index]);
 							}
 						}
 					}
@@ -438,11 +447,9 @@ $(function() {
 
 			// convert data
 			_.each(data, function(d) {
-				if(self.debugLogs){ console.log("looping data: "+JSON.stringify(d)); }
 				var timeDiff = (serverTime - d.time) * 1000;
 				var time = clientTime - timeDiff;
 				_.each(types, function(type) {
-					if(self.debugLogs){ console.log("looping type: "+type); }
 					if (!d[type]) return;
 					result[type].actual.push([time, d[type].actual]);
 					result[type].target.push([time, d[type].target]);
