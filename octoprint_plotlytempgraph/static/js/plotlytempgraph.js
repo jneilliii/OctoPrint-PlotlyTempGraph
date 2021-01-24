@@ -845,6 +845,24 @@ $(function() {
 			}
 		};
 
+		self.onAfterBinding = function(){
+		    self.resize_graph_height();
+        }
+
+		self.onSettingsHidden = function(){
+		    self.resize_graph_height();
+        }
+
+        self.resize_graph_height = function(){
+		    if(self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()>0){
+                    console.log('plotlytempgraph', 'resizing temp graph to range');
+                    Plotly.relayout('plotlytempgraph',{yaxis: {autorange: false, range: [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()]}});
+            } else {
+                console.log('plotlytempgraph', 'resetting temp graph to auto range');
+                Plotly.relayout('plotlytempgraph',{yaxis: {autorange: true, range: null}});
+            }
+        }
+
 		self.onStartup = function() {
 			self.changeOffsetDialog = $("#plotly_change_offset_dialog");
 		};

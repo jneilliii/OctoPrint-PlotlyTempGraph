@@ -10,6 +10,16 @@
             <span class="help-block">{{ _('Needs a restart of OctoPrint to become active.') }}</span>
         </div>
     </div>
+    <div class="control-group">
+        <label class="control-label" for="plotlysettings-temperatureCutoff">{{ _('Maximum Y Limit') }}</label>
+        <div class="controls">
+            <div class="input-append">
+                <input type="number" min="0" class="input-mini text-right" data-bind="value: settings.plugins.plotlytempgraph.max_graph_height" id="plotlysettings-max_graph_height">
+                <span class="add-on">degs</span>
+            </div>
+            <span class="help-block">{{ _('Set to 0 to autoscale the graph to reported temperatures.') }}</span>
+        </div>
+    </div>
     <h3>{{ _('Fine adjustments') }}</h3>
     <div class="control-group">
         <div class="controls">

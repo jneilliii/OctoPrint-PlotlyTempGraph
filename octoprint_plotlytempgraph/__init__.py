@@ -11,7 +11,7 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 
 	def get_settings_defaults(self):
 		return dict(
-			# put your plugin's default settings here
+			max_graph_height=0
 		)
 
 	##~~ AssetPlugin mixin
