@@ -17,8 +17,8 @@ $(function() {
 			showlegend: false,
 			/* legend: {"orientation": "h"}, */
 			xaxis: { type:"date", tickformat:"%H:%M:%S", automargin: true, title: {standoff: 0},linecolor: 'black', linewidth: 2, mirror: true},
-			yaxis: { type:"linear", automargin: true, title: {standoff: 0},linecolor: 'black', linewidth: 2, mirror: true },
-			margin: {l:35,r:30,b:0,t:20,pad:5},
+			yaxis: { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true },
+			margin: { l:35, r:30, b:0, t:20, pad:5},
 			images: [{"source": "/static/img/graph-background.png",
 					"xref": "paper",
 					"yref": "paper",
@@ -857,9 +857,6 @@ $(function() {
 		    if(self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()>0){
                     console.log('plotlytempgraph', 'resizing temp graph to range');
                     Plotly.relayout('plotlytempgraph',{yaxis: {autorange: false, range: [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()]}});
-            } else {
-                console.log('plotlytempgraph', 'resetting temp graph to auto range');
-                Plotly.relayout('plotlytempgraph',{yaxis: {autorange: true, range: null}});
             }
         }
 
