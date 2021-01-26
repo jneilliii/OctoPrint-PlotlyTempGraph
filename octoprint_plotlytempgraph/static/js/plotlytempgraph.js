@@ -855,8 +855,10 @@ $(function() {
 
         self.resize_graph_height = function(){
 		    if(self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()>0){
-                    console.log('plotlytempgraph', 'resizing temp graph to range');
-                    Plotly.relayout('plotlytempgraph',{yaxis: {autorange: false, range: [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()]}});
+		        console.log('plotlytempgraph', 'resizing temp graph to range');
+		        Plotly.relayout('plotlytempgraph',{'yaxis.range': [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()]});
+            } else {
+		        Plotly.relayout('plotlytempgraph',{'yaxis.autorange': true});
             }
         }
 
