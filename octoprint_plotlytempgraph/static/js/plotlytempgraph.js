@@ -331,7 +331,7 @@ $(function() {
                                     console.log("Don't know what to do: " + key + " - " + subkey + " - " + cutOffCount + " - " + index);
                                 }
                             } else {
-								Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]}, [index]);
+								Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]}, [index], (cutOffCount > 0) ? cutOffCount : null);
 							}
 						}
 					}
