@@ -17,8 +17,8 @@ $(function() {
 			showlegend: false,
 			/* legend: {"orientation": "h"}, */
 			xaxis: { type:"date", tickformat:"%H:%M:%S", automargin: true, title: {standoff: 0},linecolor: 'black', linewidth: 2, mirror: true},
-			yaxis: { type:"linear", automargin: true, title: {standoff: 0},linecolor: 'black', linewidth: 2, mirror: true },
-			margin: {l:35,r:30,b:0,t:20,pad:5},
+			yaxis: { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true },
+			margin: { l:35, r:30, b:0, t:20, pad:5},
 			images: [{"source": "/static/img/graph-background.png",
 					"xref": "paper",
 					"yref": "paper",
@@ -36,10 +36,11 @@ $(function() {
 			displaylogo: false,
 			displayModeBar: false,
 			editable: false,
-			showTips: false
+			showTips: false,
+			responsive: true
 		};
 		self.legend_visible = ko.observable(false);
-		
+
 		self.toggle_legend = function(){
 			self.legend_visible(self.legend_visible() ? false : true);
 			Plotly.relayout('plotlytempgraph',{showlegend: self.legend_visible()});
@@ -245,19 +246,35 @@ $(function() {
 			}
 			if(data.temps.length > 0){
 				var temperatures = data.temps;
-				for(var key in temperatures[temperatures.length - 1]){
+				let checkIndex = temperatures.length - 1; // Dak0r: was looping length-1 but reading "0" before
+				for(var key in temperatures[checkIndex]){
 					if(key !== 'time'){
 						if(typeof self.trace_color_index[key] === 'undefined') {
 							self.trace_color_index[key] = self.trace_color_lookup(self.trace_color_incrementer);
 							self.trace_color_incrementer++
 						}
-						for(var subkey in temperatures[0][key]){
-							var x_data = temperatures.map(function(currentValue, index, arr){return new Date(currentValue.time * 1000);});
-							var y_data = temperatures.map(function(currentValue, index, arr){return currentValue[key][subkey];});
-							if(subkey == 'actual'){
-								Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey, x: x_data, y: y_data, mode: 'lines', line: {color: self.trace_color_index[key]}, legendgroup: key});
-							} else if(subkey == 'target' && y_data.filter(function(el){return el != null;}).length > 0){
-								Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey,x: x_data,y: y_data,mode: 'lines', line: {color: pusher.color(self.trace_color_index[key]).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
+						for(var subkey in temperatures[checkIndex][key]){
+							if(temperatures[checkIndex][key][subkey] === null){
+								continue;
+							}
+							try{
+								var x_data = temperatures.map(function(currentValue, index, arr){return new Date(currentValue.time * 1000);});
+								var y_data = temperatures.map(function(currentValue, index, arr){
+									// Dak0r: Values might have not always existed, assuming 0 in that case
+									if(currentValue[key]!==undefined){
+										return currentValue[key][subkey];
+									}else{
+										return 0;
+									}
+								});
+								if(subkey == 'actual'){
+									Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey, x: x_data, y: y_data, mode: 'lines', line: {color: self.trace_color_index[key]}, legendgroup: key});
+								} else if(subkey == 'target' && y_data.filter(function(el){return el != null;}).length > 0){
+									Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey,x: x_data,y: y_data,mode: 'lines', line: {color: pusher.color(self.trace_color_index[key]).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
+								}
+							}catch(e){
+								console.error("Error plotting history data for "+key);
+								console.error(e);
 							}
 						}
 					}
@@ -267,6 +284,14 @@ $(function() {
 		};
 
 		self.plotTraces = function(temperatures) {
+			var gd = document.getElementById('plotlytempgraph').data;
+			const cutOffDate = (element) => element < new moment().subtract(parseInt(self.temperature_cutoff()), 'minutes').toDate();
+
+			let cutOffCount = 0; // Dak0r: This sometimes throws an exception, haven't looked into it, yet. Using 0 as default if it happens
+
+            if(gd.length) {
+                cutOffCount = gd[0].x.length - gd[0].x.findIndex(cutOffDate);
+            }
 			for(var i=0;i<temperatures.length;i++){
 				for (var key in temperatures[i]) {
 					var timestamp = new Date(temperatures[i].time * 1000);
@@ -276,16 +301,37 @@ $(function() {
 							self.trace_color_incrementer++
 						}
 						for(var subkey in temperatures[i][key]){
-							var gd = document.getElementById('plotlytempgraph').data;
+							if(temperatures[i][key][subkey] === null){
+								continue;
+							}
 							var index = gd.findIndex( ({ name }) => name === key + ' ' + subkey);
-							if(index < 0){
-								if(subkey == 'actual'){
-									Plotly.addTraces('plotlytempgraph',{name:key + ' ' + subkey,x:[[timestamp]],y:[[temperatures[i][key][subkey]]],mode: 'lines', line: {color: self.trace_color_index[key]}, legendgroup: key});
-								} else if(subkey == 'target' && temperatures[i][key][subkey] != null){
-									Plotly.addTraces('plotlytempgraph',{name:key + ' ' + subkey,x:[[timestamp]],y:[[temperatures[i][key][subkey]]],mode: 'lines', line: {color: pusher.color(self.trace_color_index[key]).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
-								}
-							} else {
-								Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]}, [index]);
+							if(index < 0) {
+                                if (subkey == 'actual') {
+                                    Plotly.addTraces('plotlytempgraph', {
+                                        name: key + ' ' + subkey,
+                                        x: [timestamp,timestamp],
+                                        y: [temperatures[i][key][subkey],temperatures[i][key][subkey]],
+                                        mode: 'lines',
+                                        line: {color: self.trace_color_index[key]},
+                                        legendgroup: key
+                                    });
+                                } else if (subkey == 'target' && temperatures[i][key][subkey] != null) {
+                                    Plotly.addTraces('plotlytempgraph', {
+                                        name: key + ' ' + subkey,
+                                        x: [timestamp,timestamp],
+                                        y: [temperatures[i][key][subkey],temperatures[i][key][subkey]],
+                                        mode: 'lines',
+                                        line: {
+                                            color: pusher.color(self.trace_color_index[key]).tint(0.5).html(),
+                                            dash: 'dot'
+                                        },
+                                        legendgroup: key
+                                    });
+                                } else {
+                                    console.log("Don't know what to do: " + key + " - " + subkey + " - " + cutOffCount + " - " + index);
+                                }
+                            } else {
+								Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]}, [index], (cutOffCount > 0) ? cutOffCount : null);
 							}
 						}
 					}
@@ -421,30 +467,47 @@ $(function() {
 					result[d].target = _.filter(result[d].target, filterOld);
 				});
 			}
-
 			return result;
 		};
 
-		self.profileText = function(heater, profile) {
-			var text = gettext("Set %(name)s (%(value)s)");
+		self.profileText = function (heater, profile) {
+            var text = gettext("Set %(name)s (%(value)s)");
 
-			var value;
-			if (heater.key() === "bed") {
-				value = profile.bed;
-			} else if (heater.key() === "chamber") {
-				value = profile.chamber;
-			} else {
-				value = profile.extruder;
-			}
+            var format = function (temp) {
+                if (temp === 0 || temp === undefined || temp === null) {
+                    return gettext("Off");
+                } else {
+                    return "" + temp + "°C";
+                }
+            };
 
-			if (value === 0 || value === undefined) {
-				value = gettext("Off");
-			} else {
-				value = "" + value + "°C";
-			}
+            var value;
+            if (heater === "all") {
+                value = gettext("Tool") + ": %(extruder)s";
+                if (self.hasBed()) {
+                    value += "/" + gettext("Bed") + ": %(bed)s";
+                }
+                if (self.hasChamber()) {
+                    value += "/" + gettext("Chamber") + ": %(chamber)s";
+                }
+                value = _.sprintf(value, {
+                    extruder: format(profile.extruder),
+                    bed: format(profile.bed),
+                    chamber: format(profile.chamber)
+                });
+            } else if (heater.key() === "bed") {
+                value = format(profile.bed);
+            } else if (heater.key() === "chamber") {
+                value = format(profile.chamber);
+            } else {
+                value = format(profile.extruder);
+            }
 
-			return _.sprintf(text, {name: _.escape(profile.name), value: _.escape(value)});
-		};
+            return _.sprintf(text, {
+                name: _.escape(profile.name),
+                value: _.escape(value)
+            });
+        };
 
 		self.getMaxTemp = function(actuals, targets) {
 			var maxTemp = 0;
@@ -526,6 +589,26 @@ $(function() {
 			return self.setTargetToValue(item, value);
 		};
 
+		// Wrapper of self.setTargetFromProfile() to apply all the temperature from a temperature profile
+        self.setTargetsFromProfile = function (temperatureProfile) {
+            if (temperatureProfile === undefined) {
+                console.log("temperatureProfile is undefined!");
+                return;
+            }
+
+            if (self.hasBed()) {
+                self.setTargetFromProfile(self.bedTemp, temperatureProfile);
+            }
+
+            if (self.hasChamber()) {
+                self.setTargetFromProfile(self.chamberTemp, temperatureProfile);
+            }
+
+            self.tools().forEach(function (element) {
+                self.setTargetFromProfile(element, temperatureProfile);
+            });
+        };
+
 		self.setTargetFromProfile = function(item, profile) {
 			if (!profile) return OctoPrintClient.createRejectedDeferred();
 
@@ -543,6 +626,21 @@ $(function() {
 			if (target === undefined) target = 0;
 			return self.setTargetToValue(item, target);
 		};
+
+		// Wrapper of self.setTargetToZero() to set off all the temperatures
+        self.setTargetsToZero = function () {
+            if (self.hasBed()) {
+                self.setTargetToZero(self.bedTemp);
+            }
+
+            if (self.hasChamber()) {
+                self.setTargetToZero(self.chamberTemp);
+            }
+
+            self.tools().forEach(function (element) {
+                self.setTargetToZero(element);
+            });
+        };
 
 		self.setTargetToZero = function(item) {
 			self.clearAutosendTarget(item);
@@ -747,6 +845,23 @@ $(function() {
 			}
 		};
 
+		self.onAfterBinding = function(){
+		    self.resize_graph_height();
+        }
+
+		self.onSettingsHidden = function(){
+		    self.resize_graph_height();
+        }
+
+        self.resize_graph_height = function(){
+		    if(self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()>0){
+		        console.log('plotlytempgraph', 'resizing temp graph to range');
+		        Plotly.relayout('plotlytempgraph',{'yaxis.range': [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()]});
+            } else {
+		        Plotly.relayout('plotlytempgraph',{'yaxis.autorange': true});
+            }
+        }
+
 		self.onStartup = function() {
 			self.changeOffsetDialog = $("#plotly_change_offset_dialog");
 		};
@@ -760,6 +875,13 @@ $(function() {
 			//self.initOrUpdate();
 		};
 
+		self.onAfterTabChange = function(current, previous){
+			if (current !== "#tab_plugin_plotlytempgraph") {
+				return
+			}
+			// hack for UI Customizer plugin conflict on sizing
+			Plotly.relayout('plotlytempgraph',{});
+		}
 	}
 
 	OCTOPRINT_VIEWMODELS.push({
