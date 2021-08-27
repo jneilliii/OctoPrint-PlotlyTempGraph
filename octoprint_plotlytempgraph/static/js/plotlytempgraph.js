@@ -28,7 +28,9 @@ $(function() {
 					"sizey": 0.75,
 					"xanchor": "center",
 					"yanchor": "middle",
-					"layer": "above"}]
+					"layer": "below",
+                    "name": "background",
+                    "itemname": "background"}]
 		};
 		self.options = {
 			showLink: false,
@@ -859,6 +861,20 @@ $(function() {
 		        Plotly.relayout('plotlytempgraph',{'yaxis.range': [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()]});
             } else {
 		        Plotly.relayout('plotlytempgraph',{'yaxis.autorange': true});
+            }
+		    if(self.settingsViewModel.settings.plugins.custombackground) {
+                Plotly.relayout('plotlytempgraph',{'images': [{"source": self.settingsViewModel.settings.plugins.custombackground.background_url(),
+                                    "xref": "paper",
+                                    "yref": "paper",
+                                    "x": 0.5,
+                                    "y": 0.5,
+                                    "sizex": 1,
+                                    "sizey": 1,
+                                    "xanchor": "center",
+                                    "yanchor": "middle",
+                                    "layer": "below",
+                                    "name": "background",
+                                    "itemname": "background"}]});
             }
         }
 
