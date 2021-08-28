@@ -46,7 +46,7 @@ $(function() {
 		self.toggle_legend = function(){
 			self.legend_visible(self.legend_visible() ? false : true);
 			Plotly.relayout('plotlytempgraph',{showlegend: self.legend_visible()});
-		}
+		};
 
 		Plotly.newPlot('plotlytempgraph', self.data, self.layout, self.options);
 
@@ -121,6 +121,7 @@ $(function() {
 		});
 		self.hasBed = ko.observable(true);
 		self.hasChamber = ko.observable(false);
+		self.sharedNozzle = ko.observable(false);
 
 		self.visible = ko.pureComputed(function() {
 			return self.hasTools() || self.hasBed();
@@ -164,8 +165,7 @@ $(function() {
 			if (numExtruders && numExtruders > 1 && !sharedNozzle) {
 				// multiple extruders
 				for (var extruder = 0; extruder < numExtruders; extruder++) {
-					color = graphColors.shift();
-					if (!color) color = "black";
+					color = graphColors.shift() || "black";
 					heaterOptions["tool" + extruder] = {name: "T" + extruder, color: color};
 
 					if (tools.length <= extruder || !tools[extruder]) {
@@ -174,6 +174,7 @@ $(function() {
 					tools[extruder]["name"](gettext("Tool") + " " + extruder);
 					tools[extruder]["key"]("tool" + extruder);
 				}
+				self.sharedNozzle(false);
 			} else if (numExtruders === 1 || sharedNozzle) {
 				// only one extruder, no need to add numbers
 				color = graphColors[0];
@@ -184,6 +185,7 @@ $(function() {
 				}
 				tools[0]["name"](gettext("Tool"));
 				tools[0]["key"]("tool0");
+				self.sharedNozzle(true);
 			}
 
 			// print bed
@@ -220,7 +222,7 @@ $(function() {
 			self.settingsViewModel.printerProfiles.currentProfileData().heatedChamber.subscribe(self._printerProfileUpdated);
 		});
 
-		self.temperatures = [];
+		//self.temperaturesself.temperatures = [];
 
 		self.plot = undefined;
 		self.plotHoverPos = undefined;
@@ -255,6 +257,10 @@ $(function() {
 							self.trace_color_index[key] = self.trace_color_lookup(self.trace_color_incrementer);
 							self.trace_color_incrementer++
 						}
+						if(self.sharedNozzle() && key.match('tool[1-9][0-9]?')){
+						    console.log('fromHistoryData');
+						    continue;
+                        }
 						for(var subkey in temperatures[checkIndex][key]){
 							if(temperatures[checkIndex][key][subkey] === null){
 								continue;
@@ -300,8 +306,12 @@ $(function() {
 					if(key !== 'time'){
 						if(typeof self.trace_color_index[key] === 'undefined') {
 							self.trace_color_index[key] = self.trace_color_lookup(self.trace_color_incrementer);
-							self.trace_color_incrementer++
+							self.trace_color_incrementer++;
 						}
+						if (self.sharedNozzle() && key.match('tool[1-9][0-9]*')) {
+						    console.log('plotTraces');
+						    continue;
+                        }
 						for(var subkey in temperatures[i][key]){
 							if(temperatures[i][key][subkey] === null){
 								continue;
@@ -339,7 +349,7 @@ $(function() {
 					}
 				}
 			}
-		}
+		};
 
 		self._triggerBacklog = function() {
 			_.each(self._historyTemperatureDataBacklog, function(data) {
@@ -446,17 +456,16 @@ $(function() {
 				if (!result[type].hasOwnProperty("actual")) result[type]["actual"] = [];
 				if (!result[type].hasOwnProperty("target")) result[type]["target"] = [];
 			});
-
-			// convert data
-			_.each(data, function(d) {
-				var timeDiff = (serverTime - d.time) * 1000;
-				var time = clientTime - timeDiff;
-				_.each(types, function(type) {
-					if (!d[type]) return;
-					result[type].actual.push([time, d[type].actual]);
-					result[type].target.push([time, d[type].target]);
-				})
-			});
+            // convert data
+            _.each(data, function(d) {
+                var timeDiff = (serverTime - d.time) * 1000;
+                var time = clientTime - timeDiff;
+                _.each(types, function(type) {
+                    if (!d[type]) return;
+                    result[type].actual.push([time, d[type].actual]);
+                    result[type].target.push([time, d[type].target]);
+                });
+            });
 
 			var temperature_cutoff = self.temperature_cutoff();
 			if (temperature_cutoff !== undefined) {
