@@ -50,6 +50,36 @@ $(function() {
 
 		Plotly.newPlot('plotlytempgraph', self.data, self.layout, self.options);
 
+        self.settingsViewModel.addNameMapping = function() {
+            self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(""), "label": ko.observable(""), "color": ko.observable("")});
+        };
+
+        self.settingsViewModel.removeNameMapping = function(data) {
+            self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.remove(data);
+        };
+
+        self.lookup_name = function(identifier) {
+            let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
+               return item.identifier() == identifier;
+            });
+            if (name_map) {
+                return name_map.label();
+            } else {
+                return identifier;
+            }
+        };
+
+        self.lookup_color = function(key, subkey) {
+            let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
+               return item.identifier() === key + ' ' + subkey;
+            });
+            if (name_map && name_map.color() !== '') {
+                return name_map.color();
+            } else {
+                return self.trace_color_index[key];
+            }
+        };
+
 		self._createToolEntry = function() {
 			var entry = {
 				name: ko.observable(),
@@ -255,7 +285,7 @@ $(function() {
 					if(key !== 'time'){
 						if(typeof self.trace_color_index[key] === 'undefined') {
 							self.trace_color_index[key] = self.trace_color_lookup(self.trace_color_incrementer);
-							self.trace_color_incrementer++
+							self.trace_color_incrementer++;
 						}
 						if(self.sharedNozzle() && key.match('tool[1-9][0-9]?')){
 						    console.log('fromHistoryData');
@@ -275,10 +305,13 @@ $(function() {
 										return 0;
 									}
 								});
-								if(subkey == 'actual'){
-									Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey, x: x_data, y: y_data, mode: 'lines', line: {color: self.trace_color_index[key]}, legendgroup: key});
-								} else if(subkey == 'target' && y_data.filter(function(el){return el != null;}).length > 0){
-									Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey,x: x_data,y: y_data,mode: 'lines', line: {color: pusher.color(self.trace_color_index[key]).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
+
+                                var name_map_identifier = self.lookup_name(key + ' ' + subkey);
+                                var name_map_color = self.lookup_color(key, subkey);
+								if(subkey === 'actual'){
+									Plotly.addTraces('plotlytempgraph',{name: name_map_identifier, x: x_data, y: y_data, mode: 'lines', line: {color: name_map_color}, legendgroup: key});
+								} else if(subkey === 'target' && y_data.filter(function(el){return el !== null;}).length > 0){
+									Plotly.addTraces('plotlytempgraph',{name: name_map_identifier,x: x_data,y: y_data,mode: 'lines', line: {color: pusher.color(name_map_color).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
 								}
 							}catch(e){
 								console.error("Error plotting history data for "+key);
@@ -316,25 +349,27 @@ $(function() {
 							if(temperatures[i][key][subkey] === null){
 								continue;
 							}
-							var index = gd.findIndex( ({ name }) => name === key + ' ' + subkey);
+                            var name_map_identifier = self.lookup_name(key + ' ' + subkey);
+                            var name_map_color = self.lookup_color(key, subkey);
+							var index = gd.findIndex( ({ name }) => name === name_map_identifier );
 							if(index < 0) {
-                                if (subkey == 'actual') {
+                                if (subkey === 'actual') {
                                     Plotly.addTraces('plotlytempgraph', {
-                                        name: key + ' ' + subkey,
+                                        name: name_map_identifier,
                                         x: [timestamp,timestamp],
                                         y: [temperatures[i][key][subkey],temperatures[i][key][subkey]],
                                         mode: 'lines',
-                                        line: {color: self.trace_color_index[key]},
+                                        line: {color: name_map_color},
                                         legendgroup: key
                                     });
-                                } else if (subkey == 'target' && temperatures[i][key][subkey] != null) {
+                                } else if (subkey === 'target' && temperatures[i][key][subkey] != null) {
                                     Plotly.addTraces('plotlytempgraph', {
-                                        name: key + ' ' + subkey,
+                                        name: name_map_identifier,
                                         x: [timestamp,timestamp],
                                         y: [temperatures[i][key][subkey],temperatures[i][key][subkey]],
                                         mode: 'lines',
                                         line: {
-                                            color: pusher.color(self.trace_color_index[key]).tint(0.5).html(),
+                                            color: pusher.color(name_map_color).tint(0.5).html(),
                                             dash: 'dot'
                                         },
                                         legendgroup: key

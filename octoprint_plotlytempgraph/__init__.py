@@ -11,15 +11,19 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ SettingsPlugin mixin
 
 	def get_settings_defaults(self):
-		return dict(
-			max_graph_height=0
-		)
+		return {
+			"max_graph_height": 0,
+			"name_map": [{"identifier": "tool0", "label": "Extruder", "color": ""},
+						 {"identifier": "bed", "label": "Bed", "color": ""},
+						 {"identifier": "chamber", "label": "Chamber", "color": ""}]
+		}
 
 	##~~ AssetPlugin mixin
 
 	def get_assets(self):
 		return dict(
-			js=["js/plotly-latest.min.js", "js/plotlytempgraph.js"]
+			css=["css/spectrum.css"],
+			js=["js/spectrum.js", "js/ko.colorpicker.js", "js/plotly-latest.min.js", "js/plotlytempgraph.js"]
 		)
 
 	def get_template_configs(self):
