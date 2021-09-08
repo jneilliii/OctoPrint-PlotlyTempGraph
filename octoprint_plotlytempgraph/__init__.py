@@ -11,15 +11,22 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ SettingsPlugin mixin
 
 	def get_settings_defaults(self):
-		return dict(
-			max_graph_height=0
-		)
+		return {
+			"max_graph_height": 0,
+			"name_map": [{"identifier": "tool0 actual", "label": "tool0 actual", "color": ""},
+						 {"identifier": "tool0 trget", "label": "tool0 target", "color": ""},
+						 {"identifier": "bed actual", "label": "bed actual", "color": ""},
+						 {"identifier": "bed target", "label": "bed target", "color": ""},
+						 {"identifier": "chamber actual", "label": "chamber actual", "color": ""},
+						 {"identifier": "chamber target", "label": "chamber target", "color": ""}]
+		}
 
 	##~~ AssetPlugin mixin
 
 	def get_assets(self):
 		return dict(
-			js=["js/plotly-latest.min.js", "js/plotlytempgraph.js"]
+			css=["css/spectrum.css"],
+			js=["js/spectrum.js", "js/ko.colorpicker.js", "js/plotly-latest.min.js", "js/plotlytempgraph.js"]
 		)
 
 	def get_template_configs(self):

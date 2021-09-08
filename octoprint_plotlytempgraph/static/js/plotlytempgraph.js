@@ -28,7 +28,9 @@ $(function() {
 					"sizey": 0.75,
 					"xanchor": "center",
 					"yanchor": "middle",
-					"layer": "above"}]
+					"layer": "below",
+                    "name": "background",
+                    "itemname": "background"}]
 		};
 		self.options = {
 			showLink: false,
@@ -44,9 +46,39 @@ $(function() {
 		self.toggle_legend = function(){
 			self.legend_visible(self.legend_visible() ? false : true);
 			Plotly.relayout('plotlytempgraph',{showlegend: self.legend_visible()});
-		}
+		};
 
 		Plotly.newPlot('plotlytempgraph', self.data, self.layout, self.options);
+
+        self.settingsViewModel.addNameMapping = function() {
+            self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(""), "label": ko.observable(""), "color": ko.observable("")});
+        };
+
+        self.settingsViewModel.removeNameMapping = function(data) {
+            self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.remove(data);
+        };
+
+        self.lookup_name = function(identifier) {
+            let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
+               return item.identifier() == identifier;
+            });
+            if (name_map) {
+                return name_map.label();
+            } else {
+                return identifier;
+            }
+        };
+
+        self.lookup_color = function(key, subkey) {
+            let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
+               return item.identifier() === key + ' ' + subkey;
+            });
+            if (name_map && name_map.color() !== '') {
+                return name_map.color();
+            } else {
+                return self.trace_color_index[key];
+            }
+        };
 
 		self._createToolEntry = function() {
 			var entry = {
@@ -119,6 +151,7 @@ $(function() {
 		});
 		self.hasBed = ko.observable(true);
 		self.hasChamber = ko.observable(false);
+		self.sharedNozzle = ko.observable(false);
 
 		self.visible = ko.pureComputed(function() {
 			return self.hasTools() || self.hasBed();
@@ -162,8 +195,7 @@ $(function() {
 			if (numExtruders && numExtruders > 1 && !sharedNozzle) {
 				// multiple extruders
 				for (var extruder = 0; extruder < numExtruders; extruder++) {
-					color = graphColors.shift();
-					if (!color) color = "black";
+					color = graphColors.shift() || "black";
 					heaterOptions["tool" + extruder] = {name: "T" + extruder, color: color};
 
 					if (tools.length <= extruder || !tools[extruder]) {
@@ -172,6 +204,7 @@ $(function() {
 					tools[extruder]["name"](gettext("Tool") + " " + extruder);
 					tools[extruder]["key"]("tool" + extruder);
 				}
+				self.sharedNozzle(false);
 			} else if (numExtruders === 1 || sharedNozzle) {
 				// only one extruder, no need to add numbers
 				color = graphColors[0];
@@ -182,6 +215,7 @@ $(function() {
 				}
 				tools[0]["name"](gettext("Tool"));
 				tools[0]["key"]("tool0");
+				self.sharedNozzle(true);
 			}
 
 			// print bed
@@ -218,7 +252,7 @@ $(function() {
 			self.settingsViewModel.printerProfiles.currentProfileData().heatedChamber.subscribe(self._printerProfileUpdated);
 		});
 
-		self.temperatures = [];
+		//self.temperaturesself.temperatures = [];
 
 		self.plot = undefined;
 		self.plotHoverPos = undefined;
@@ -251,8 +285,12 @@ $(function() {
 					if(key !== 'time'){
 						if(typeof self.trace_color_index[key] === 'undefined') {
 							self.trace_color_index[key] = self.trace_color_lookup(self.trace_color_incrementer);
-							self.trace_color_incrementer++
+							self.trace_color_incrementer++;
 						}
+						if(self.sharedNozzle() && key.match('tool[1-9][0-9]?')){
+						    console.log('fromHistoryData');
+						    continue;
+                        }
 						for(var subkey in temperatures[checkIndex][key]){
 							if(temperatures[checkIndex][key][subkey] === null){
 								continue;
@@ -267,10 +305,13 @@ $(function() {
 										return 0;
 									}
 								});
-								if(subkey == 'actual'){
-									Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey, x: x_data, y: y_data, mode: 'lines', line: {color: self.trace_color_index[key]}, legendgroup: key});
-								} else if(subkey == 'target' && y_data.filter(function(el){return el != null;}).length > 0){
-									Plotly.addTraces('plotlytempgraph',{name: key + ' ' + subkey,x: x_data,y: y_data,mode: 'lines', line: {color: pusher.color(self.trace_color_index[key]).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
+
+                                var name_map_identifier = self.lookup_name(key + ' ' + subkey);
+                                var name_map_color = self.lookup_color(key, subkey);
+								if(subkey === 'actual'){
+									Plotly.addTraces('plotlytempgraph',{name: name_map_identifier, x: x_data, y: y_data, mode: 'lines', line: {color: name_map_color}, legendgroup: key});
+								} else if(subkey === 'target' && y_data.filter(function(el){return el !== null;}).length > 0){
+									Plotly.addTraces('plotlytempgraph',{name: name_map_identifier,x: x_data,y: y_data,mode: 'lines', line: {color: pusher.color(name_map_color).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
 								}
 							}catch(e){
 								console.error("Error plotting history data for "+key);
@@ -298,31 +339,37 @@ $(function() {
 					if(key !== 'time'){
 						if(typeof self.trace_color_index[key] === 'undefined') {
 							self.trace_color_index[key] = self.trace_color_lookup(self.trace_color_incrementer);
-							self.trace_color_incrementer++
+							self.trace_color_incrementer++;
 						}
+						if (self.sharedNozzle() && key.match('tool[1-9][0-9]*')) {
+						    console.log('plotTraces');
+						    continue;
+                        }
 						for(var subkey in temperatures[i][key]){
 							if(temperatures[i][key][subkey] === null){
 								continue;
 							}
-							var index = gd.findIndex( ({ name }) => name === key + ' ' + subkey);
+                            var name_map_identifier = self.lookup_name(key + ' ' + subkey);
+                            var name_map_color = self.lookup_color(key, subkey);
+							var index = gd.findIndex( ({ name }) => name === name_map_identifier );
 							if(index < 0) {
-                                if (subkey == 'actual') {
+                                if (subkey === 'actual') {
                                     Plotly.addTraces('plotlytempgraph', {
-                                        name: key + ' ' + subkey,
+                                        name: name_map_identifier,
                                         x: [timestamp,timestamp],
                                         y: [temperatures[i][key][subkey],temperatures[i][key][subkey]],
                                         mode: 'lines',
-                                        line: {color: self.trace_color_index[key]},
+                                        line: {color: name_map_color},
                                         legendgroup: key
                                     });
-                                } else if (subkey == 'target' && temperatures[i][key][subkey] != null) {
+                                } else if (subkey === 'target' && temperatures[i][key][subkey] != null) {
                                     Plotly.addTraces('plotlytempgraph', {
-                                        name: key + ' ' + subkey,
+                                        name: name_map_identifier,
                                         x: [timestamp,timestamp],
                                         y: [temperatures[i][key][subkey],temperatures[i][key][subkey]],
                                         mode: 'lines',
                                         line: {
-                                            color: pusher.color(self.trace_color_index[key]).tint(0.5).html(),
+                                            color: pusher.color(name_map_color).tint(0.5).html(),
                                             dash: 'dot'
                                         },
                                         legendgroup: key
@@ -337,7 +384,7 @@ $(function() {
 					}
 				}
 			}
-		}
+		};
 
 		self._triggerBacklog = function() {
 			_.each(self._historyTemperatureDataBacklog, function(data) {
@@ -444,17 +491,16 @@ $(function() {
 				if (!result[type].hasOwnProperty("actual")) result[type]["actual"] = [];
 				if (!result[type].hasOwnProperty("target")) result[type]["target"] = [];
 			});
-
-			// convert data
-			_.each(data, function(d) {
-				var timeDiff = (serverTime - d.time) * 1000;
-				var time = clientTime - timeDiff;
-				_.each(types, function(type) {
-					if (!d[type]) return;
-					result[type].actual.push([time, d[type].actual]);
-					result[type].target.push([time, d[type].target]);
-				})
-			});
+            // convert data
+            _.each(data, function(d) {
+                var timeDiff = (serverTime - d.time) * 1000;
+                var time = clientTime - timeDiff;
+                _.each(types, function(type) {
+                    if (!d[type]) return;
+                    result[type].actual.push([time, d[type].actual]);
+                    result[type].target.push([time, d[type].target]);
+                });
+            });
 
 			var temperature_cutoff = self.temperature_cutoff();
 			if (temperature_cutoff !== undefined) {
@@ -859,6 +905,20 @@ $(function() {
 		        Plotly.relayout('plotlytempgraph',{'yaxis.range': [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()]});
             } else {
 		        Plotly.relayout('plotlytempgraph',{'yaxis.autorange': true});
+            }
+		    if(self.settingsViewModel.settings.plugins.custombackground) {
+                Plotly.relayout('plotlytempgraph',{'images': [{"source": self.settingsViewModel.settings.plugins.custombackground.background_url(),
+                                    "xref": "paper",
+                                    "yref": "paper",
+                                    "x": 0.5,
+                                    "y": 0.5,
+                                    "sizex": 1,
+                                    "sizey": 1,
+                                    "xanchor": "center",
+                                    "yanchor": "middle",
+                                    "layer": "below",
+                                    "name": "background",
+                                    "itemname": "background"}]});
             }
         }
 
