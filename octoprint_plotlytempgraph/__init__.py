@@ -10,6 +10,18 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 
 	##~~ SettingsPlugin mixin
 
+	def get_settings_version(self):
+		return 1
+
+	def on_settings_migrate(self, target, current):
+		if current is None or current < 1:
+			# Loop through name map and add new property
+			name_map_new = []
+			for mapping in self._settings.get(['name_map']):
+				mapping["hidden"] = False
+				name_map_new.append(mapping)
+			self._settings.set(["name_map"], name_map_new)
+
 	def get_settings_defaults(self):
 		return {
 			"max_graph_height": 0,
@@ -26,7 +38,7 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 
 	def get_assets(self):
 		return dict(
-			css=["css/spectrum.css"],
+			css=["css/spectrum.css", "css/PlotlyTempGraph.css"],
 			js=["js/spectrum.js", "js/ko.colorpicker.js", "js/plotly-latest.min.js", "js/plotlytempgraph.js"]
 		)
 
