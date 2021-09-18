@@ -45,6 +45,8 @@ $(function() {
 
 		self.toggle_legend = function(){
 			self.legend_visible(self.legend_visible() ? false : true);
+            self.settingsViewModel.settings.plugins.plotlytempgraph.always_show_legend(self.legend_visible());
+            self.settingsViewModel.saveData();
 			Plotly.relayout('plotlytempgraph',{showlegend: self.legend_visible()});
 		};
 
@@ -919,6 +921,10 @@ $(function() {
                                     "layer": "below",
                                     "name": "background",
                                     "itemname": "background"}]});
+            }
+            if(self.settingsViewModel.settings.plugins.plotlytempgraph.always_show_legend()) {
+                self.legend_visible(true);
+                Plotly.relayout('plotlytempgraph',{showlegend: true});
             }
         }
 

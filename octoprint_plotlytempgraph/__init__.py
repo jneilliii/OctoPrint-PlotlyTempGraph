@@ -18,7 +18,8 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 						 {"identifier": "bed actual", "label": "bed actual", "color": ""},
 						 {"identifier": "bed target", "label": "bed target", "color": ""},
 						 {"identifier": "chamber actual", "label": "chamber actual", "color": ""},
-						 {"identifier": "chamber target", "label": "chamber target", "color": ""}]
+						 {"identifier": "chamber target", "label": "chamber target", "color": ""}],
+			"always_show_legend": False
 		}
 
 	##~~ AssetPlugin mixin
