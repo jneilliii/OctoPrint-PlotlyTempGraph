@@ -53,7 +53,7 @@ $(function() {
 		Plotly.newPlot('plotlytempgraph', self.data, self.layout, self.options);
 
         self.settingsViewModel.addNameMapping = function() {
-            self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(""), "label": ko.observable(""), "color": ko.observable("")});
+            self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(""), "label": ko.observable(""), "color": ko.observable(""), "hidden": ko.observable(false)});
         };
 
         self.settingsViewModel.removeNameMapping = function(data) {

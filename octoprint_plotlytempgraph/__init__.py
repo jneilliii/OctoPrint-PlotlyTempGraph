@@ -25,12 +25,12 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 	def get_settings_defaults(self):
 		return {
 			"max_graph_height": 0,
-			"name_map": [{"identifier": "tool0 actual", "label": "tool0 actual", "color": ""},
-						 {"identifier": "tool0 trget", "label": "tool0 target", "color": ""},
-						 {"identifier": "bed actual", "label": "bed actual", "color": ""},
-						 {"identifier": "bed target", "label": "bed target", "color": ""},
-						 {"identifier": "chamber actual", "label": "chamber actual", "color": ""},
-						 {"identifier": "chamber target", "label": "chamber target", "color": ""}],
+			"name_map": [{"identifier": "tool0 actual", "label": "tool0 actual", "color": "", "hidden": False},
+						 {"identifier": "tool0 trget", "label": "tool0 target", "color": "", "hidden": False},
+						 {"identifier": "bed actual", "label": "bed actual", "color": "", "hidden": False},
+						 {"identifier": "bed target", "label": "bed target", "color": "", "hidden": False},
+						 {"identifier": "chamber actual", "label": "chamber actual", "color": "", "hidden": False},
+						 {"identifier": "chamber target", "label": "chamber target", "color": "", "hidden": False}],
 			"always_show_legend": False
 		}
 
