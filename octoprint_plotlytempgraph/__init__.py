@@ -10,22 +10,35 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 
 	##~~ SettingsPlugin mixin
 
+	def get_settings_version(self):
+		return 1
+
+	def on_settings_migrate(self, target, current):
+		if current is None or current < 1:
+			# Loop through name map and add new property
+			name_map_new = []
+			for mapping in self._settings.get(['name_map']):
+				mapping["hidden"] = False
+				name_map_new.append(mapping)
+			self._settings.set(["name_map"], name_map_new)
+
 	def get_settings_defaults(self):
 		return {
 			"max_graph_height": 0,
-			"name_map": [{"identifier": "tool0 actual", "label": "tool0 actual", "color": ""},
-						 {"identifier": "tool0 trget", "label": "tool0 target", "color": ""},
-						 {"identifier": "bed actual", "label": "bed actual", "color": ""},
-						 {"identifier": "bed target", "label": "bed target", "color": ""},
-						 {"identifier": "chamber actual", "label": "chamber actual", "color": ""},
-						 {"identifier": "chamber target", "label": "chamber target", "color": ""}]
+			"name_map": [{"identifier": "tool0 actual", "label": "tool0 actual", "color": "", "hidden": False},
+						 {"identifier": "tool0 target", "label": "tool0 target", "color": "", "hidden": False},
+						 {"identifier": "bed actual", "label": "bed actual", "color": "", "hidden": False},
+						 {"identifier": "bed target", "label": "bed target", "color": "", "hidden": False},
+						 {"identifier": "chamber actual", "label": "chamber actual", "color": "", "hidden": False},
+						 {"identifier": "chamber target", "label": "chamber target", "color": "", "hidden": False}],
+			"always_show_legend": False
 		}
 
 	##~~ AssetPlugin mixin
 
 	def get_assets(self):
 		return dict(
-			css=["css/spectrum.css"],
+			css=["css/spectrum.css", "css/PlotlyTempGraph.css"],
 			js=["js/spectrum.js", "js/ko.colorpicker.js", "js/plotly-latest.min.js", "js/plotlytempgraph.js"]
 		)
 
