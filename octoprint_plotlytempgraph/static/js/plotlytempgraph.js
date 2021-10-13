@@ -86,7 +86,7 @@ $(function() {
             let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
                return item.identifier() === key + ' ' + subkey;
             });
-            if (name_map && !name_map.hidden()) {
+            if (!name_map || (name_map && !name_map.hidden())) {
                 return true;
             } else {
                 return false;
