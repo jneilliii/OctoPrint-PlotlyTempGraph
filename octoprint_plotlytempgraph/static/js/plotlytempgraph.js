@@ -960,8 +960,13 @@ $(function() {
 			if (current !== "#tab_plugin_plotlytempgraph") {
 				return
 			}
-			// hack for UI Customizer plugin conflict on sizing
-			Plotly.relayout('plotlytempgraph',{});
+			// hack for UI Customizer plugin conflict on sizing and color changes
+            let background_color = ($('body').css('background-color') == 'rgba(0, 0, 0, 0)') ? '#FFFFFF' : $('body').css('background-color');
+			let foreground_color = $('#tabs_content').css('color');
+			Plotly.relayout('plotlytempgraph',{
+					plot_bgcolor: background_color,
+					paper_bgcolor: background_color,
+                    font: {color: foreground_color}});
 		}
 	}
 
