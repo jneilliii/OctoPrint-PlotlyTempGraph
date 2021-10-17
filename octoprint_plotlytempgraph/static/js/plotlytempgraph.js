@@ -393,9 +393,9 @@ $(function() {
                                     // console.log("Don't know what to do: " + key + " - " + subkey + " - " + cutOffCount + " - " + index);
                                 }
                             } else if (name_map_visible) {
-                                // console.log("temperature not being rendered: " + key + " - " + subkey);
-                            } else {
 								Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]}, [index], (cutOffCount > 0) ? cutOffCount : null);
+                            } else {
+                                console.log("temperature not being rendered: " + key + " - " + subkey);
 							}
 						}
 					}
