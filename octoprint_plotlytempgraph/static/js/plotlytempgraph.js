@@ -64,7 +64,7 @@ $(function() {
             let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
                return item.identifier() == identifier;
             });
-            if (name_map) {
+            if (name_map && name_map.label() !== '') {
                 return name_map.label();
             } else {
                 return identifier;
