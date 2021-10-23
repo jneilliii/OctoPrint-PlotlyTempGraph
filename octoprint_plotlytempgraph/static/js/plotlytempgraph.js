@@ -5,6 +5,7 @@ $(function() {
 		self.loginState = parameters[0];
 		self.settingsViewModel = parameters[1];
 		self.access = parameters[2];
+        self.touchui = parameters[3];
 
 		self.trace_color_index = {};
 		self.trace_color_incrementer = 0;
@@ -975,7 +976,8 @@ $(function() {
 
 	OCTOPRINT_VIEWMODELS.push({
 		construct: PlotlytempgraphViewModel,
-		dependencies: ["loginStateViewModel", "settingsViewModel", "accessViewModel"],
-		elements: ["#tab_plugin_plotlytempgraph", "#tab_plugin_plotlytempgraph_link", "#plotly_change_offset_dialog"]
+		dependencies: ["loginStateViewModel", "settingsViewModel", "accessViewModel", "touchUIViewModel"],
+        optional: ["touchUIViewModel"],
+		elements: ["#plotlytempgraph_container", "#tab_plugin_plotlytempgraph_link", "#plotly_change_offset_dialog"]
 	});
 });
