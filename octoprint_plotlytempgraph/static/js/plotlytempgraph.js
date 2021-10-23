@@ -87,6 +87,9 @@ $(function() {
                return item.identifier() === key + ' ' + subkey;
             });
             if (!name_map || (name_map && !name_map.hidden())) {
+                if (!name_map){
+                    self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(key + ' ' + subkey), "label": ko.observable(""), "color": ko.observable(""), "hidden": ko.observable(false)});
+                }
                 return true;
             } else {
                 return false;
