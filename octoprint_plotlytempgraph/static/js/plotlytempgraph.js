@@ -10,24 +10,12 @@ $(function() {
 		self.trace_color_incrementer = 0;
 		self.trace_color_lookup = Plotly.d3.scale.category10();
 
-        self.rgb2hex = function(orig){
-         var rgb = orig.replace(/\s/g,'').match(/^rgba?\((\d+),(\d+),(\d+)/i);
-         return (rgb && rgb.length === 4) ? "#" +
-              ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
-              ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
-              ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : orig;
-        };
-
 		// plotly graphing related stuff
 		self.data = [];
-        var background_color = $('#tabs_content').css('background-color');
-        var foreground_color = self.rgb2hex($('#tabs_content').css('color'));
 		self.layout = {
 			autosize: true,
-            plot_bgcolor: background_color,
-            paper_bgcolor: background_color,
 			showlegend: false,
-			legend: {font: {color: foreground_color}},
+			/* legend: {"orientation": "h"}, */
 			xaxis: { type:"date", tickformat:"%H:%M:%S", automargin: true, title: {standoff: 0},linecolor: 'black', linewidth: 2, mirror: true},
 			yaxis: { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true },
 			margin: { l:35, r:30, b:0, t:20, pad:5},
@@ -76,7 +64,7 @@ $(function() {
             let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
                return item.identifier() == identifier;
             });
-            if (name_map) {
+            if (name_map && name_map.label() !== '') {
                 return name_map.label();
             } else {
                 return identifier;
@@ -98,7 +86,10 @@ $(function() {
             let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
                return item.identifier() === key + ' ' + subkey;
             });
-            if (name_map && !name_map.hidden()) {
+            if (!name_map || (name_map && !name_map.hidden())) {
+                if (!name_map){
+                    self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(key + ' ' + subkey), "label": ko.observable(""), "color": ko.observable(""), "hidden": ko.observable(false)});
+                }
                 return true;
             } else {
                 return false;
@@ -405,9 +396,9 @@ $(function() {
                                     // console.log("Don't know what to do: " + key + " - " + subkey + " - " + cutOffCount + " - " + index);
                                 }
                             } else if (name_map_visible) {
-                                // console.log("temperature not being rendered: " + key + " - " + subkey);
-                            /*} else {*/
 								Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]}, [index], (cutOffCount > 0) ? cutOffCount : null);
+                            } else {
+                                console.log("temperature not being rendered: " + key + " - " + subkey);
 							}
 						}
 					}
@@ -953,8 +944,6 @@ $(function() {
                 self.legend_visible(true);
                 Plotly.relayout('plotlytempgraph',{showlegend: true});
             }
-            var foreground_color = self.rgb2hex($('#tabs_content').css('color'));
-            Plotly.relayout('plotlytempgraph',{font: {color: foreground_color}, legend: {font: {color: foreground_color}}});
         }
 
 		self.onStartup = function() {
@@ -974,8 +963,13 @@ $(function() {
 			if (current !== "#tab_plugin_plotlytempgraph") {
 				return
 			}
-			// hack for UI Customizer plugin conflict on sizing
-			Plotly.relayout('plotlytempgraph',{});
+			// hack for UI Customizer plugin conflict on sizing and color changes
+            let background_color = ($('body').css('background-color') == 'rgba(0, 0, 0, 0)') ? '#FFFFFF' : $('body').css('background-color');
+			let foreground_color = $('#tabs_content').css('color');
+			Plotly.relayout('plotlytempgraph',{
+					plot_bgcolor: background_color,
+					paper_bgcolor: background_color,
+                    font: {color: foreground_color}});
 		}
 	}
 
