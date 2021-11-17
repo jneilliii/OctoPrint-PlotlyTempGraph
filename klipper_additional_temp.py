@@ -4,7 +4,7 @@ from __future__ import absolute_import
 import octoprint.plugin
 import re
 
-class KlipperAdditionalTemp(octoprint.plugin.StartupPlugin):
+class KlipperAdditionalTemp(octoprint.plugin.StartupPlugin, octoprint.plugin.RestartNeedingPlugin):
 	def __init__(self):
 		self.last_rpi_speeds = dict()
 		self.rpi_temp_regex = re.compile(r".+rpi:(?P<rpi>\d+\.\d).+")
