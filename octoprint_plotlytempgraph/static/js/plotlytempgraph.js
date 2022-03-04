@@ -8,7 +8,18 @@ $(function() {
 
 		self.trace_color_index = {};
 		self.trace_color_incrementer = 0;
-		self.trace_color_lookup = Plotly.d3.scale.category10();
+		self.trace_color_lookup = [
+            "#1f77b4",
+            "#ff7f0e",
+            "#2ca02c",
+            "#d62728",
+            "#9467bd",
+            "#8c564b",
+            "#e377c2",
+            "#7f7f7f",
+            "#bcbd22",
+            "#17becf"
+        ];
 
 		// plotly graphing related stuff
 		self.data = [];
@@ -300,7 +311,7 @@ $(function() {
 				for(var key in temperatures[checkIndex]){
 					if(key !== 'time'){
 						if(typeof self.trace_color_index[key] === 'undefined') {
-							self.trace_color_index[key] = self.trace_color_lookup(self.trace_color_incrementer);
+							self.trace_color_index[key] = self.trace_color_lookup[self.trace_color_incrementer];
 							self.trace_color_incrementer++;
 						}
 						if(self.sharedNozzle() && key.match('tool[1-9][0-9]?')){
@@ -355,7 +366,7 @@ $(function() {
 					var timestamp = new Date(temperatures[i].time * 1000);
 					if(key !== 'time'){
 						if(typeof self.trace_color_index[key] === 'undefined') {
-							self.trace_color_index[key] = self.trace_color_lookup(self.trace_color_incrementer);
+							self.trace_color_index[key] = self.trace_color_lookup[self.trace_color_incrementer];
 							self.trace_color_incrementer++;
 						}
 						if (self.sharedNozzle() && key.match('tool[1-9][0-9]*')) {
@@ -964,8 +975,9 @@ $(function() {
 				return
 			}
 			// hack for UI Customizer plugin conflict on sizing and color changes
-            let background_color = ($('body').css('background-color') == 'rgba(0, 0, 0, 0)') ? '#FFFFFF' : $('body').css('background-color');
-			let foreground_color = $('#tabs_content').css('color');
+            // let background_color = ($('#sidebar').css('background-color') == 'rgba(0, 0, 0, 0)') ? '#FFFFFF' : $('#sidebar').css('background-color');
+			let background_color = (self.settingsViewModel.settings.plugins.plotlytempgraph.graph_bg_color() !== "") ? self.settingsViewModel.settings.plugins.plotlytempgraph.graph_bg_color() : ($('.tab-content').css('background-color') == 'rgba(0, 0, 0, 0)') ? '#FFFFFF' : $('.tab-content').css('background-color');
+            let foreground_color = $('#tabs_content').css('color');
 			Plotly.relayout('plotlytempgraph',{
 					plot_bgcolor: background_color,
 					paper_bgcolor: background_color,

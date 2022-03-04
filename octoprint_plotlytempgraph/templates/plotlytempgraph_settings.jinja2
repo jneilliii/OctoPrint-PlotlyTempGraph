@@ -20,6 +20,13 @@
             <span class="help-block">{{ _('Set to 0 to autoscale the graph to reported temperatures.') }}</span>
         </div>
     </div>
+    <div class="control-group">
+        <label class="control-label" for="plotlysettings-temperatureBackgroundColor">{{ _('Background Color') }}</label>
+        <div class="controls">
+            <input type="text" data-bind="colorPicker: settings.plugins.plotlytempgraph.graph_bg_color" placeholder="#FFFF00" id="plotlysettings-temperatureBackgroundColor">
+            <span class="help-block">{{ _('Requires refresh of browser or tab change within OctoPrint to take effect.') }}</span>
+        </div>
+    </div>
     <h3>{{ _('Fine adjustments') }}</h3>
     <div class="control-group">
         <div class="controls">
