@@ -8,7 +8,7 @@ $(function() {
 
 		self.trace_color_index = {};
 		self.trace_color_incrementer = 0;
-		self.trace_color_lookup = Plotly.d3.scale.category10();
+		self.trace_color_lookup = d3.scaleOrdinal(d3.schemeCategory10);
 
 		// plotly graphing related stuff
 		self.data = [];

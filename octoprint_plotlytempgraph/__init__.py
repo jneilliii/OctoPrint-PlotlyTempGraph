@@ -39,7 +39,7 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 	def get_assets(self):
 		return dict(
 			css=["css/spectrum.css", "css/PlotlyTempGraph.css"],
-			js=["js/spectrum.js", "js/ko.colorpicker.js", "js/plotly-latest.min.js", "js/plotlytempgraph.js"]
+			js=["js/spectrum.js", "js/ko.colorpicker.js", "js/d3-color-3.js", "js/d3-interpolate-3.js", "js/d3-scale-chromatic-3.js", "js/plotly-latest.min.js", "js/plotlytempgraph.js"]
 		)
 
 	def get_template_configs(self):
