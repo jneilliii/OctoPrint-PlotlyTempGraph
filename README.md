@@ -11,6 +11,19 @@ or manually using this URL:
 
     https://github.com/jneilliii/OctoPrint-PlotlyTempGraph/archive/master.zip
 
+## Example Single File Plugins
+
+These example single file plugins demonstrate how to feed additional temperature data into this plugin. To directly install, right-click a URL below and select `copy link address` (or similar) and paste into Plugin Manager > Get More > ...from URL and click `Install`. 
+
+- [Adafruit MCP9808](https://raw.githubusercontent.com/jneilliii/OctoPrint-PlotlyTempGraph/master/examples/MCP9808Graph.py), thanks to [@puterboy](https://github.com/puterboy)
+- [System Command](https://raw.githubusercontent.com/jneilliii/OctoPrint-PlotlyTempGraph/master/examples/SystemCmdGraph.py), thanks to [@puterboy](https://github.com/puterboy)
+- [Multiple System Commands](https://raw.githubusercontent.com/jneilliii/OctoPrint-PlotlyTempGraph/master/examples/SystemCmdMultiGraph.py), thanks to [@puterboy](https://github.com/puterboy)
+- [Klipper Additional Temps](https://raw.githubusercontent.com/jneilliii/OctoPrint-PlotlyTempGraph/master/examples/klipper_additional_temp.py)
+- [Prusa MK3 Einsy Temperature](https://raw.githubusercontent.com/jneilliii/OctoPrint-PlotlyTempGraph/master/examples/MK3TempGraph.py), thanks to [@puterboy](https://github.com/puterboy)
+- [CPU Temperature](https://raw.githubusercontent.com/jneilliii/OctoPrint-PlotlyTempGraph/master/examples/plotly_temp_graph_cpu_reporting.py) (using psutil)
+- [CPU Temperature](https://raw.githubusercontent.com/jneilliii/OctoPrint-PlotlyTempGraph/master/examples/RPiSysGraph.py) (using sysfs commands), thanks to [@puterboy](https://github.com/puterboy)
+- [M106 Fan Speed](https://raw.githubusercontent.com/jneilliii/OctoPrint-PlotlyTempGraph/master/examples/test_plotly_graph_fan_speed.py) (gcode received from printer, requires `REPORT_FAN_CHANGE` to be enabled in Marlin 2.0.6+)
+
 ## Get Help
 
 If you experience issues with this plugin or need assistance please use the issue tracker by clicking issues above.
