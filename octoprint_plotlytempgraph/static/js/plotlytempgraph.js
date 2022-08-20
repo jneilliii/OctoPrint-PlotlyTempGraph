@@ -27,8 +27,9 @@ $(function() {
 			autosize: true,
 			showlegend: false,
 			/* legend: {"orientation": "h"}, */
-			xaxis: { type:"date", tickformat:"%H:%M:%S", automargin: true, title: {standoff: 0},linecolor: 'black', linewidth: 2, mirror: true},
-			yaxis: { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true },
+			xaxis: { type:"date", tickformat:"%H:%M:%S", automargin: true, title: {standoff: 0},linecolor: 'black', linewidth: 2, mirror: true },
+			yaxis: { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true, autorange: true },
+			yaxis2: { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true, overlaying: 'y', side: 'right', autotick: false, tick0: 0, dtick: (300 * 9/5 + 32)/6},
 			margin: { l:35, r:30, b:0, t:20, pad:5},
 			images: [{"source": "/static/img/graph-background.png",
 					"xref": "paper",
@@ -64,7 +65,7 @@ $(function() {
 		Plotly.newPlot('plotlytempgraph', self.data, self.layout, self.options);
 
         self.settingsViewModel.addNameMapping = function() {
-            self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(""), "label": ko.observable(""), "color": ko.observable(""), "hidden": ko.observable(false)});
+            self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(""), "label": ko.observable(""), "color": ko.observable(""), "hidden": ko.observable(false), "use_fahrenheit": ko.observable(false), "convert_to_fahrenheit": ko.observable(false)});
         };
 
         self.settingsViewModel.removeNameMapping = function(data) {
@@ -99,8 +100,30 @@ $(function() {
             });
             if (!name_map || (name_map && !name_map.hidden())) {
                 if (!name_map){
-                    self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(key + ' ' + subkey), "label": ko.observable(""), "color": ko.observable(""), "hidden": ko.observable(false)});
+                    self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(key + ' ' + subkey), "label": ko.observable(""), "color": ko.observable(""), "hidden": ko.observable(false), "use_fahrenheit": ko.observable(false), "convert_to_fahrenheit": ko.observable(false)});
                 }
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        self.lookup_use_fahrenheit = function(key, subkey) {
+            let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
+               return item.identifier() === key + ' ' + subkey;
+            });
+            if (name_map && name_map.use_fahrenheit()) {
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        self.lookup_convert_celsius = function(key, subkey) {
+            let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
+               return item.identifier() === key + ' ' + subkey;
+            });
+            if (name_map && name_map.convert_to_fahrenheit()) {
                 return true;
             } else {
                 return false;
@@ -323,24 +346,29 @@ $(function() {
 								continue;
 							}
 							try{
+                                var name_map_identifier = self.lookup_name(key + ' ' + subkey);
+                                var name_map_color = self.lookup_color(key, subkey);
+                                var name_map_visible = self.lookup_visibility(key, subkey);
+                                var name_map_use_fahrenheit = self.lookup_use_fahrenheit(key, subkey);
+                                var name_map_convert_celsius = self.lookup_convert_celsius(key, subkey);
 								var x_data = temperatures.map(function(currentValue, index, arr){return new Date(currentValue.time * 1000);});
 								var y_data = temperatures.map(function(currentValue, index, arr){
 									// Dak0r: Values might have not always existed, assuming 0 in that case
 									if(currentValue[key]!==undefined){
-										return currentValue[key][subkey];
+										return name_map_convert_celsius ? ((currentValue[key][subkey] * 9/5) + 32) : currentValue[key][subkey];
 									}else{
 										return 0;
 									}
 								});
-
-                                var name_map_identifier = self.lookup_name(key + ' ' + subkey);
-                                var name_map_color = self.lookup_color(key, subkey);
-                                var name_map_visible = self.lookup_visibility(key, subkey);
-								if(subkey === 'actual' && name_map_visible){
-									Plotly.addTraces('plotlytempgraph',{name: name_map_identifier, x: x_data, y: y_data, mode: 'lines', line: {color: name_map_color}, legendgroup: key});
-								} else if(subkey === 'target' && y_data.filter(function(el){return el !== null;}).length > 0 && name_map_visible){
-									Plotly.addTraces('plotlytempgraph',{name: name_map_identifier,x: x_data,y: y_data,mode: 'lines', line: {color: pusher.color(name_map_color).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
+                                var points = {name: name_map_identifier, x: x_data, y: y_data, mode: 'lines', line: {color: name_map_color}, legendgroup: key};
+								if(subkey === 'target' && y_data.filter(function(el){return el !== null;}).length > 0 && name_map_visible){
+                                    points.line.color = pusher.color(name_map_color).tint(0.5).html();
+                                    points.line.dash = 'dot';
 								}
+                                if (name_map_use_fahrenheit) {
+                                    points.yaxis = "y2";
+                                }
+                                Plotly.addTraces('plotlytempgraph', points);
 							}catch(e){
 								console.error("Error plotting history data for "+key);
 								console.error(e);
@@ -380,34 +408,29 @@ $(function() {
                             var name_map_identifier = self.lookup_name(key + ' ' + subkey);
                             var name_map_color = self.lookup_color(key, subkey);
                             var name_map_visible = self.lookup_visibility(key, subkey);
+                            var name_map_use_fahrenheit = self.lookup_use_fahrenheit(key, subkey);
+                            var name_map_convert_celsius = self.lookup_convert_celsius(key, subkey);
 							var index = gd.findIndex( ({ name }) => name === name_map_identifier );
 							if(index < 0) {
-                                if (subkey === 'actual' && name_map_visible) {
-                                    Plotly.addTraces('plotlytempgraph', {
-                                        name: name_map_identifier,
-                                        x: [timestamp,timestamp],
-                                        y: [temperatures[i][key][subkey],temperatures[i][key][subkey]],
-                                        mode: 'lines',
-                                        line: {color: name_map_color},
-                                        legendgroup: key
-                                    });
-                                } else if (subkey === 'target' && temperatures[i][key][subkey] != null && name_map_visible) {
-                                    Plotly.addTraces('plotlytempgraph', {
-                                        name: name_map_identifier,
-                                        x: [timestamp,timestamp],
-                                        y: [temperatures[i][key][subkey],temperatures[i][key][subkey]],
-                                        mode: 'lines',
-                                        line: {
-                                            color: pusher.color(name_map_color).tint(0.5).html(),
-                                            dash: 'dot'
-                                        },
-                                        legendgroup: key
-                                    });
-                                } else {
-                                    // console.log("Don't know what to do: " + key + " - " + subkey + " - " + cutOffCount + " - " + index);
+                                let point = {
+                                    name: name_map_identifier,
+                                    x: [timestamp,timestamp],
+                                    y: name_map_convert_celsius ? [(temperatures[i][key][subkey],temperatures[i][key][subkey] * 9/5) + 32] : [temperatures[i][key][subkey],temperatures[i][key][subkey]],
+                                    mode: 'lines',
+                                    line: {color: name_map_color},
+                                    legendgroup: key
+                                };
+                                if (subkey === 'target' && temperatures[i][key][subkey] != null && name_map_visible) {
+                                    point.line.color = pusher.color(name_map_color).tint(0.5).html();
+                                    point.line.dash = 'dot';
                                 }
+                                if (name_map_use_fahrenheit) {
+                                    point.yaxis = "y2";
+                                }
+                                Plotly.addTraces('plotlytempgraph', point);
                             } else if (name_map_visible) {
-								Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]}, [index], (cutOffCount > 0) ? cutOffCount : null);
+                                let point = {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]};
+								Plotly.extendTraces('plotlytempgraph', point, [index], (cutOffCount > 0) ? cutOffCount : null);
                             } else {
                                 console.log("temperature not being rendered: " + key + " - " + subkey);
 							}
@@ -932,8 +955,7 @@ $(function() {
 
         self.resize_graph_height = function(){
 		    if(self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()>0){
-		        console.log('plotlytempgraph', 'resizing temp graph to range');
-		        Plotly.relayout('plotlytempgraph',{'yaxis.range': [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()]});
+		        Plotly.relayout('plotlytempgraph',{'yaxis.range': [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()], 'yaxis2.range': [0, (parseInt(self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()) * 9/5 + 32)]});
             } else {
 		        Plotly.relayout('plotlytempgraph',{'yaxis.autorange': true});
             }
