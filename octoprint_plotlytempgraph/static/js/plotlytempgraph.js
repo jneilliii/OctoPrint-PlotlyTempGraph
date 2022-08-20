@@ -360,7 +360,7 @@ $(function() {
 										return 0;
 									}
 								});
-                                var points = {name: name_map_identifier, x: x_data, y: y_data, mode: 'lines', line: {color: name_map_color}, legendgroup: key};
+                                var points = {name: name_map_identifier, x: x_data, y: y_data, mode: 'lines', line: {color: name_map_color}, legendgroup: key, hovertemplate: name_map_use_fahrenheit ? '<b>%{x}:</b> %{y:.1f}&#8457; <extra></extra>' : '<b>%{x}:</b> %{y:.1f}&#8451; <extra></extra>'};
 								if(subkey === 'target' && y_data.filter(function(el){return el !== null;}).length > 0 && name_map_visible){
                                     points.line.color = pusher.color(name_map_color).tint(0.5).html();
                                     points.line.dash = 'dot';
@@ -418,7 +418,8 @@ $(function() {
                                     y: name_map_convert_celsius ? [(temperatures[i][key][subkey],temperatures[i][key][subkey] * 9/5) + 32] : [temperatures[i][key][subkey],temperatures[i][key][subkey]],
                                     mode: 'lines',
                                     line: {color: name_map_color},
-                                    legendgroup: key
+                                    legendgroup: key,
+                                    hovertemplate: name_map_use_fahrenheit ? '<b>%{x}:</b> %{y:.1f}&#8457;<extra></extra>' : '<b>%{x}:</b> %{y:.1f}&#8451;<extra></extra>'
                                 };
                                 if (subkey === 'target' && temperatures[i][key][subkey] != null && name_map_visible) {
                                     point.line.color = pusher.color(name_map_color).tint(0.5).html();
@@ -429,7 +430,7 @@ $(function() {
                                 }
                                 Plotly.addTraces('plotlytempgraph', point);
                             } else if (name_map_visible) {
-                                let point = {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]};
+                                let point = {x: [[timestamp]], y: name_map_convert_celsius ? [[temperatures[i][key][subkey] * 9/5 + 32]] : [[temperatures[i][key][subkey]]]};
 								Plotly.extendTraces('plotlytempgraph', point, [index], (cutOffCount > 0) ? cutOffCount : null);
                             } else {
                                 console.log("temperature not being rendered: " + key + " - " + subkey);

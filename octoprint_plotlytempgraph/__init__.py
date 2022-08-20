@@ -34,7 +34,7 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 		return {
 			"max_graph_height": 0,
 			"name_map": [{"identifier": "tool0 actual", "label": "tool0 actual", "color": "", "hidden": False, "use_fahrenheit": False, "convert_to_fahrenheit": False},
-						 {"identifier": "tool0 trget", "label": "tool0 target", "color": "", "hidden": False, "use_fahrenheit": False, "convert_to_fahrenheit": False},
+						 {"identifier": "tool0 target", "label": "tool0 target", "color": "", "hidden": False, "use_fahrenheit": False, "convert_to_fahrenheit": False},
 						 {"identifier": "bed actual", "label": "bed actual", "color": "", "hidden": False, "use_fahrenheit": False, "convert_to_fahrenheit": False},
 						 {"identifier": "bed target", "label": "bed target", "color": "", "hidden": False, "use_fahrenheit": False, "convert_to_fahrenheit": False},
 						 {"identifier": "chamber actual", "label": "chamber actual", "color": "", "hidden": False, "use_fahrenheit": False, "convert_to_fahrenheit": False},
