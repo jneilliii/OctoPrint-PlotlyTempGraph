@@ -29,7 +29,7 @@ $(function() {
 			/* legend: {"orientation": "h"}, */
 			xaxis: { type:"date", tickformat:"%H:%M:%S", automargin: true, title: {standoff: 0},linecolor: 'black', linewidth: 2, mirror: true },
 			yaxis: { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true, autorange: true },
-			yaxis2: { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true, overlaying: 'y', side: 'right', autotick: false, tick0: 0, dtick: (300 * 9/5 + 32)/6},
+			yaxis2: { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true, overlaying: 'y', side: 'right', autotick: false, tick0: 0, tickformat: '.0f', dtick: (300 * 9/5 + 32)/6},
 			margin: { l:35, r:30, b:0, t:20, pad:5},
 			images: [{"source": "/static/img/graph-background.png",
 					"xref": "paper",
@@ -346,9 +346,12 @@ $(function() {
 								continue;
 							}
 							try{
+                                var name_map_visible = self.lookup_visibility(key, subkey);
+                                if (!name_map_visible) {
+                                    continue;
+                                }
                                 var name_map_identifier = self.lookup_name(key + ' ' + subkey);
                                 var name_map_color = self.lookup_color(key, subkey);
-                                var name_map_visible = self.lookup_visibility(key, subkey);
                                 var name_map_use_fahrenheit = self.lookup_use_fahrenheit(key, subkey);
                                 var name_map_convert_celsius = self.lookup_convert_celsius(key, subkey);
 								var x_data = temperatures.map(function(currentValue, index, arr){return new Date(currentValue.time * 1000);});
@@ -360,7 +363,7 @@ $(function() {
 										return 0;
 									}
 								});
-                                var points = {name: name_map_identifier, x: x_data, y: y_data, mode: 'lines', line: {color: name_map_color}, legendgroup: key, hovertemplate: name_map_use_fahrenheit ? '<b>%{x}:</b> %{y:.1f}&#8457; <extra></extra>' : '<b>%{x}:</b> %{y:.1f}&#8451; <extra></extra>'};
+                                var points = {name: name_map_identifier, x: x_data, y: y_data, mode: 'lines', line: {color: name_map_color}, legendgroup: key, hovertemplate: name_map_use_fahrenheit ? '<b>%{y:.1f}&#8457;</b> ' : '<b>%{y:.1f}&#8451;</b> '};
 								if(subkey === 'target' && y_data.filter(function(el){return el !== null;}).length > 0 && name_map_visible){
                                     points.line.color = pusher.color(name_map_color).tint(0.5).html();
                                     points.line.dash = 'dot';
@@ -405,13 +408,16 @@ $(function() {
 							if(temperatures[i][key][subkey] === null){
 								continue;
 							}
+                            var name_map_visible = self.lookup_visibility(key, subkey);
+                            if(!name_map_visible) {
+                                continue;
+                            }
                             var name_map_identifier = self.lookup_name(key + ' ' + subkey);
                             var name_map_color = self.lookup_color(key, subkey);
-                            var name_map_visible = self.lookup_visibility(key, subkey);
                             var name_map_use_fahrenheit = self.lookup_use_fahrenheit(key, subkey);
                             var name_map_convert_celsius = self.lookup_convert_celsius(key, subkey);
 							var index = gd.findIndex( ({ name }) => name === name_map_identifier );
-							if(index < 0) {
+							if(index < 0 && name_map_visible) {
                                 let point = {
                                     name: name_map_identifier,
                                     x: [timestamp,timestamp],
@@ -419,9 +425,9 @@ $(function() {
                                     mode: 'lines',
                                     line: {color: name_map_color},
                                     legendgroup: key,
-                                    hovertemplate: name_map_use_fahrenheit ? '<b>%{x}:</b> %{y:.1f}&#8457;<extra></extra>' : '<b>%{x}:</b> %{y:.1f}&#8451;<extra></extra>'
+                                    hovertemplate: name_map_use_fahrenheit ? '<b>%{y:.1f}&#8457;</b> ' : '<b>%{y:.1f}&#8451;</b> '
                                 };
-                                if (subkey === 'target' && temperatures[i][key][subkey] != null && name_map_visible) {
+                                if (subkey === 'target' && temperatures[i][key][subkey] != null) {
                                     point.line.color = pusher.color(name_map_color).tint(0.5).html();
                                     point.line.dash = 'dot';
                                 }
@@ -431,7 +437,7 @@ $(function() {
                                 Plotly.addTraces('plotlytempgraph', point);
                             } else if (name_map_visible) {
                                 let point = {x: [[timestamp]], y: name_map_convert_celsius ? [[temperatures[i][key][subkey] * 9/5 + 32]] : [[temperatures[i][key][subkey]]]};
-								Plotly.extendTraces('plotlytempgraph', point, [index], (cutOffCount > 0) ? cutOffCount : null);
+                                Plotly.extendTraces('plotlytempgraph', point, [index], (cutOffCount > 0) ? cutOffCount : null);
                             } else {
                                 console.log("temperature not being rendered: " + key + " - " + subkey);
 							}
