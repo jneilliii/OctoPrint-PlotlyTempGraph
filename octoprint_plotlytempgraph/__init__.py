@@ -26,19 +26,18 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 			name_map_new = []
 			for mapping in self._settings.get(['name_map']):
 				mapping["use_fahrenheit"] = False
-				mapping["convert_to_fahrenheit"] = False
 				name_map_new.append(mapping)
 			self._settings.set(["name_map"], name_map_new)
 
 	def get_settings_defaults(self):
 		return {
 			"max_graph_height": 0,
-			"name_map": [{"identifier": "tool0 actual", "label": "tool0 actual", "color": "", "hidden": False, "use_fahrenheit": False, "convert_to_fahrenheit": False},
-						 {"identifier": "tool0 target", "label": "tool0 target", "color": "", "hidden": False, "use_fahrenheit": False, "convert_to_fahrenheit": False},
-						 {"identifier": "bed actual", "label": "bed actual", "color": "", "hidden": False, "use_fahrenheit": False, "convert_to_fahrenheit": False},
-						 {"identifier": "bed target", "label": "bed target", "color": "", "hidden": False, "use_fahrenheit": False, "convert_to_fahrenheit": False},
-						 {"identifier": "chamber actual", "label": "chamber actual", "color": "", "hidden": False, "use_fahrenheit": False, "convert_to_fahrenheit": False},
-						 {"identifier": "chamber target", "label": "chamber target", "color": "", "hidden": False, "use_fahrenheit": False, "convert_to_fahrenheit": False}],
+			"name_map": [{"identifier": "tool0 actual", "label": "tool0 actual", "color": "", "hidden": False, "use_fahrenheit": False},
+						 {"identifier": "tool0 target", "label": "tool0 target", "color": "", "hidden": False, "use_fahrenheit": False},
+						 {"identifier": "bed actual", "label": "bed actual", "color": "", "hidden": False, "use_fahrenheit": False},
+						 {"identifier": "bed target", "label": "bed target", "color": "", "hidden": False, "use_fahrenheit": False},
+						 {"identifier": "chamber actual", "label": "chamber actual", "color": "", "hidden": False, "use_fahrenheit": False},
+						 {"identifier": "chamber target", "label": "chamber target", "color": "", "hidden": False, "use_fahrenheit": False}],
 			"always_show_legend": False,
 			"graph_bg_color": ""
 		}
