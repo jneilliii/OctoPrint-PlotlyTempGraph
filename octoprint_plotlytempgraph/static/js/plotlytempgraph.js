@@ -28,6 +28,7 @@ $(function() {
 			showlegend: false,
 			/* legend: {"orientation": "h"}, */
 			xaxis: { type:"date", tickformat:"%H:%M:%S", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true },
+			xaxis: { type:"date", tickformat:"%H:%M:%S", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true },
 			yaxis: { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true, autorange: true },
 			yaxis2: { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true, overlaying: 'y', side: 'right', autorange: false, range: [0, 300], tickvals: [0, 50, 100, 150, 200, 250, 300], ticktext: [32, 50 * 9/5 + 32, 100 * 9/5 + 32, 150 * 9/5 + 32, 200 * 9/5 + 32, 250 * 9/5 + 32, 300 * 9/5 + 32] },
 			margin: { l:35, r:30, b:0, t:20, pad:5 },
@@ -958,28 +959,43 @@ $(function() {
 
         self.resize_graph_height = function(){
 		    if(self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()>0){
-		        Plotly.relayout('plotlytempgraph',{'yaxis.range': [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()], 'yaxis2.range': [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()]});
+                self.layout.yaxis.autorange = false;
+                self.layout.yaxis.range = [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()]
+                self.layout.yaxis2.range = [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()]
             } else {
-		        Plotly.relayout('plotlytempgraph',{'yaxis.autorange': true});
+                self.layout.yaxis.autorange = true;
+                self.layout.yaxis2.autorange = true;
             }
 		    if(self.settingsViewModel.settings.plugins.custombackground) {
-                Plotly.relayout('plotlytempgraph',{'images': [{"source": self.settingsViewModel.settings.plugins.custombackground.background_url(),
+                self.layout.images = [{"source": self.settingsViewModel.settings.plugins.custombackground.background_url(),
                                     "xref": "paper",
                                     "yref": "paper",
                                     "x": 0.5,
                                     "y": 0.5,
-                                    "sizex": 1,
-                                    "sizey": 1,
+                                    "sizex": (self.settingsViewModel.settings.plugins.custombackground.background_url() === '/static/img/graph-background.png') ? 0.75 : 1,
+                                    "sizey": (self.settingsViewModel.settings.plugins.custombackground.background_url() === '/static/img/graph-background.png') ? 0.75 : 1,
+                                    "sizing": "fill",
                                     "xanchor": "center",
                                     "yanchor": "middle",
                                     "layer": "below",
                                     "name": "background",
-                                    "itemname": "background"}]});
+                                    "itemname": "background"}];
+                if(self.settingsViewModel.settings.plugins.custombackground.tick_color() !== "") {
+                    self.layout.xaxis.gridcolor = self.settingsViewModel.settings.plugins.custombackground.tick_color();
+                    self.layout.yaxis.gridcolor = self.settingsViewModel.settings.plugins.custombackground.tick_color();
+                    self.layout.yaxis2.gridcolor = self.settingsViewModel.settings.plugins.custombackground.tick_color();
+                }
+                if(self.settingsViewModel.settings.plugins.custombackground.axes_text_color() !== "") {
+                    self.layout.xaxis.tickfont = {color: self.settingsViewModel.settings.plugins.custombackground.axes_text_color()};
+                    self.layout.yaxis.tickfont = {color: self.settingsViewModel.settings.plugins.custombackground.axes_text_color()};
+                    self.layout.yaxis2.tickfont = {color: self.settingsViewModel.settings.plugins.custombackground.axes_text_color()};
+                }
             }
             if(self.settingsViewModel.settings.plugins.plotlytempgraph.always_show_legend()) {
                 self.legend_visible(true);
-                Plotly.relayout('plotlytempgraph',{showlegend: true});
+                self.layout.showlegend = true;
             }
+            Plotly.relayout('plotlytempgraph',self.layout);
         }
 
 		self.onStartup = function() {
