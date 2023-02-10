@@ -23,6 +23,7 @@ These example single file plugins demonstrate how to feed additional temperature
 - [CPU Temperature](https://raw.githubusercontent.com/jneilliii/OctoPrint-PlotlyTempGraph/master/examples/plotly_temp_graph_cpu_reporting.py) (using psutil)
 - [CPU Temperature](https://raw.githubusercontent.com/jneilliii/OctoPrint-PlotlyTempGraph/master/examples/RPiSysGraph.py) (using sysfs commands), thanks to [@puterboy](https://github.com/puterboy)
 - [M106 Fan Speed](https://raw.githubusercontent.com/jneilliii/OctoPrint-PlotlyTempGraph/master/examples/test_plotly_graph_fan_speed.py) (gcode received from printer, requires `REPORT_FAN_CHANGE` to be enabled in Marlin 2.0.6+)
+- [Marlin Heater Power](https://raw.githubusercontent.com/jneilliii/OctoPrint-PlotlyTempGraph/master/examples/heater_temps.py), parses `@:0 B@:28` for nozzle and bed heater values
 
 ## Get Help
 

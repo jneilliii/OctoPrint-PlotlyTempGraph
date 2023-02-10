@@ -43,7 +43,8 @@ $(function() {
 					"yanchor": "middle",
 					"layer": "below",
                     "name": "background",
-                    "itemname": "background"}]
+                    "itemname": "background"}],
+            hovermode: "x"
 		};
 		self.options = {
 			showLink: false,
