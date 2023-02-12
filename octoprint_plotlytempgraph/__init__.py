@@ -11,7 +11,7 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ SettingsPlugin mixin
 
 	def get_settings_version(self):
-		return 2
+		return 4
 
 	def on_settings_migrate(self, target, current):
 		if current is None or current < 1:
@@ -28,16 +28,31 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 				mapping["use_fahrenheit"] = False
 				name_map_new.append(mapping)
 			self._settings.set(["name_map"], name_map_new)
+		if current <= 2:
+			# Loop through name map and add new property
+			name_map_new = []
+			for mapping in self._settings.get(['name_map']):
+				mapping["use_sub_plot"] = False
+				name_map_new.append(mapping)
+			self._settings.set(["name_map"], name_map_new)
+		if current <= 3:
+			# Loop through name map and add new property
+			name_map_new = []
+			for mapping in self._settings.get(['name_map']):
+				mapping["hover_color"] = ""
+				name_map_new.append(mapping)
+			self._settings.set(["name_map"], name_map_new)
 
 	def get_settings_defaults(self):
 		return {
 			"max_graph_height": 0,
-			"name_map": [{"identifier": "tool0 actual", "label": "tool0 actual", "color": "", "hidden": False, "use_fahrenheit": False},
-						 {"identifier": "tool0 target", "label": "tool0 target", "color": "", "hidden": False, "use_fahrenheit": False},
-						 {"identifier": "bed actual", "label": "bed actual", "color": "", "hidden": False, "use_fahrenheit": False},
-						 {"identifier": "bed target", "label": "bed target", "color": "", "hidden": False, "use_fahrenheit": False},
-						 {"identifier": "chamber actual", "label": "chamber actual", "color": "", "hidden": False, "use_fahrenheit": False},
-						 {"identifier": "chamber target", "label": "chamber target", "color": "", "hidden": False, "use_fahrenheit": False}],
+			"max_graph_height_sub": 0,
+			"name_map": [{"identifier": "tool0 actual", "label": "tool0 actual", "color": "", "hover_color": "", "hidden": False, "use_fahrenheit": False, "use_sub_plot": False},
+						 {"identifier": "tool0 target", "label": "tool0 target", "color": "", "hover_color": "", "hidden": False, "use_fahrenheit": False, "use_sub_plot": False},
+						 {"identifier": "bed actual", "label": "bed actual", "color": "", "hover_color": "", "hidden": False, "use_fahrenheit": False, "use_sub_plot": False},
+						 {"identifier": "bed target", "label": "bed target", "color": "", "hover_color": "", "hidden": False, "use_fahrenheit": False, "use_sub_plot": False},
+						 {"identifier": "chamber actual", "label": "chamber actual", "color": "", "hover_color": "", "hidden": False, "use_fahrenheit": False, "use_sub_plot": False},
+						 {"identifier": "chamber target", "label": "chamber target", "color": "", "hover_color": "", "hidden": False, "use_fahrenheit": False, "use_sub_plot": False}],
 			"always_show_legend": False,
 			"graph_bg_color": ""
 		}
