@@ -6,9 +6,30 @@ $(function() {
 		self.settingsViewModel = parameters[1];
 		self.access = parameters[2];
 
+        self.settingsViewModel.has_second_axis = ko.pureComputed(function(){
+                if(self.settingsViewModel.settings.hasOwnProperty('plugins')) {
+                    return ko.utils.arrayFilter(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function (item) {
+                        return item.use_sub_plot();
+                    });
+                } else {
+                    return ko.observableArray([]);
+                }
+            });
+
 		self.trace_color_index = {};
 		self.trace_color_incrementer = 0;
-		self.trace_color_lookup = Plotly.d3.scale.category10();
+		self.trace_color_lookup = [
+            "#1f77b4",
+            "#ff7f0e",
+            "#2ca02c",
+            "#d62728",
+            "#9467bd",
+            "#8c564b",
+            "#e377c2",
+            "#7f7f7f",
+            "#bcbd22",
+            "#17becf"
+        ];
 
 		// plotly graphing related stuff
 		self.data = [];
@@ -16,9 +37,9 @@ $(function() {
 			autosize: true,
 			showlegend: false,
 			/* legend: {"orientation": "h"}, */
-			xaxis: { type:"date", tickformat:"%H:%M:%S", automargin: true, title: {standoff: 0},linecolor: 'black', linewidth: 2, mirror: true},
-			yaxis: { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true },
-			margin: { l:35, r:30, b:0, t:20, pad:5},
+			xaxis: { type:"date", tickformat:"%H:%M:%S", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true },
+			yaxis: { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true, autorange: true },
+			margin: { l:35, r:30, b:0, t:20, pad:5 },
 			images: [{"source": "/static/img/graph-background.png",
 					"xref": "paper",
 					"yref": "paper",
@@ -30,8 +51,10 @@ $(function() {
 					"yanchor": "middle",
 					"layer": "below",
                     "name": "background",
-                    "itemname": "background"}]
+                    "itemname": "background"}],
+            hovermode: "x"
 		};
+
 		self.options = {
 			showLink: false,
 			sendData: false,
@@ -53,7 +76,13 @@ $(function() {
 		Plotly.newPlot('plotlytempgraph', self.data, self.layout, self.options);
 
         self.settingsViewModel.addNameMapping = function() {
-            self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(""), "label": ko.observable(""), "color": ko.observable(""), "hidden": ko.observable(false)});
+            self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(""),
+                "label": ko.observable(""),
+                "color": ko.observable(""),
+                "hover_color": ko.observable(""),
+                "hidden": ko.observable(false),
+                "use_fahrenheit": ko.observable(false),
+                "use_sub_plot": ko.observable(false)});
         };
 
         self.settingsViewModel.removeNameMapping = function(data) {
@@ -82,14 +111,47 @@ $(function() {
             }
         };
 
+        self.lookup_hover_color = function(key, subkey) {
+            let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
+               return item.identifier() === key + ' ' + subkey;
+            });
+            if (name_map && name_map.hover_color() !== '') {
+                return name_map.hover_color();
+            } else {
+                return undefined;
+            }
+        };
+
         self.lookup_visibility = function(key, subkey) {
             let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
                return item.identifier() === key + ' ' + subkey;
             });
             if (!name_map || (name_map && !name_map.hidden())) {
                 if (!name_map){
-                    self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(key + ' ' + subkey), "label": ko.observable(""), "color": ko.observable(""), "hidden": ko.observable(false)});
+                    self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(key + ' ' + subkey), "label": ko.observable(""), "color": ko.observable(""), "hover_color": ko.observable(""), "hidden": ko.observable(false), "use_fahrenheit": ko.observable(false), "use_sub_plot": ko.observable(false)});
                 }
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        self.lookup_use_fahrenheit = function(key, subkey) {
+            let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
+               return item.identifier() === key + ' ' + subkey;
+            });
+            if (name_map && name_map.use_fahrenheit()) {
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        self.lookup_use_sub_plot = function(key, subkey) {
+            let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
+               return item.identifier() === key + ' ' + subkey;
+            });
+            if (name_map && name_map.use_sub_plot()) {
                 return true;
             } else {
                 return false;
@@ -300,7 +362,7 @@ $(function() {
 				for(var key in temperatures[checkIndex]){
 					if(key !== 'time'){
 						if(typeof self.trace_color_index[key] === 'undefined') {
-							self.trace_color_index[key] = self.trace_color_lookup(self.trace_color_incrementer);
+							self.trace_color_index[key] = self.trace_color_lookup[self.trace_color_incrementer];
 							self.trace_color_incrementer++;
 						}
 						if(self.sharedNozzle() && key.match('tool[1-9][0-9]?')){
@@ -312,24 +374,45 @@ $(function() {
 								continue;
 							}
 							try{
+                                var name_map_visible = self.lookup_visibility(key, subkey);
+                                if (!name_map_visible) {
+                                    continue;
+                                }
+                                var name_map_identifier = self.lookup_name(key + ' ' + subkey);
+                                var name_map_color = self.lookup_color(key, subkey);
+                                var name_map_hover_color = self.lookup_hover_color(key, subkey);
+                                var name_map_use_fahrenheit = self.lookup_use_fahrenheit(key, subkey);
+                                var name_map_use_sub_plot = self.lookup_use_sub_plot(key, subkey);
 								var x_data = temperatures.map(function(currentValue, index, arr){return new Date(currentValue.time * 1000);});
 								var y_data = temperatures.map(function(currentValue, index, arr){
 									// Dak0r: Values might have not always existed, assuming 0 in that case
 									if(currentValue[key]!==undefined){
-										return currentValue[key][subkey];
+                                        if(subkey === 'target' && currentValue[key][subkey] == 0) {
+                                            return 0;
+                                        } else {
+                                            return name_map_use_fahrenheit ? (currentValue[key][subkey] * 9 / 5) + 32 : currentValue[key][subkey];
+                                        }
 									}else{
 										return 0;
 									}
 								});
-
-                                var name_map_identifier = self.lookup_name(key + ' ' + subkey);
-                                var name_map_color = self.lookup_color(key, subkey);
-                                var name_map_visible = self.lookup_visibility(key, subkey);
-								if(subkey === 'actual' && name_map_visible){
-									Plotly.addTraces('plotlytempgraph',{name: name_map_identifier, x: x_data, y: y_data, mode: 'lines', line: {color: name_map_color}, legendgroup: key});
-								} else if(subkey === 'target' && y_data.filter(function(el){return el !== null;}).length > 0 && name_map_visible){
-									Plotly.addTraces('plotlytempgraph',{name: name_map_identifier,x: x_data,y: y_data,mode: 'lines', line: {color: pusher.color(name_map_color).tint(0.5).html(), dash: 'dot'}, legendgroup: key});
+								var custom_data = temperatures.map(function(currentValue, index, arr){
+									// Dak0r: Values might have not always existed, assuming 0 in that case
+									if(currentValue[key]!==undefined){
+										return name_map_use_fahrenheit ? (currentValue[key][subkey] !== 0) ? ((currentValue[key][subkey] * 9/5) + 32) : 0 : currentValue[key][subkey];
+									}else{
+										return 0;
+									}
+								});
+                                var points = {name: name_map_identifier, x: x_data, y: y_data, mode: 'lines', line: {color: name_map_color}, legendgroup: key, hoverlabel: {font: {color: name_map_hover_color}}, hovertemplate: name_map_use_fahrenheit ? '<b>%{customdata:.1f}&#8457;</b> ' : '<b>%{y:.1f}&#8451;</b> ', customdata: custom_data};
+								if(subkey === 'target' && y_data.filter(function(el){return el !== null;}).length > 0 && name_map_visible){
+                                    points.line.color = pusher.color(name_map_color).tint(0.5).html();
+                                    points.line.dash = 'dot';
 								}
+                                if (name_map_use_sub_plot) {
+                                    points.yaxis = "y2";
+                                }
+                                Plotly.addTraces('plotlytempgraph', points);
 							}catch(e){
 								console.error("Error plotting history data for "+key);
 								console.error(e);
@@ -355,7 +438,7 @@ $(function() {
 					var timestamp = new Date(temperatures[i].time * 1000);
 					if(key !== 'time'){
 						if(typeof self.trace_color_index[key] === 'undefined') {
-							self.trace_color_index[key] = self.trace_color_lookup(self.trace_color_incrementer);
+							self.trace_color_index[key] = self.trace_color_lookup[self.trace_color_incrementer];
 							self.trace_color_incrementer++;
 						}
 						if (self.sharedNozzle() && key.match('tool[1-9][0-9]*')) {
@@ -366,37 +449,46 @@ $(function() {
 							if(temperatures[i][key][subkey] === null){
 								continue;
 							}
+                            var name_map_visible = self.lookup_visibility(key, subkey);
+                            if(!name_map_visible) {
+                                continue;
+                            }
                             var name_map_identifier = self.lookup_name(key + ' ' + subkey);
                             var name_map_color = self.lookup_color(key, subkey);
-                            var name_map_visible = self.lookup_visibility(key, subkey);
+                            var name_map_hover_color = self.lookup_hover_color(key, subkey);
+                            var name_map_use_fahrenheit = self.lookup_use_fahrenheit(key, subkey);
+                            var name_map_use_sub_plot = self.lookup_use_sub_plot(key, subkey);
 							var index = gd.findIndex( ({ name }) => name === name_map_identifier );
-							if(index < 0) {
-                                if (subkey === 'actual' && name_map_visible) {
-                                    Plotly.addTraces('plotlytempgraph', {
-                                        name: name_map_identifier,
-                                        x: [timestamp,timestamp],
-                                        y: [temperatures[i][key][subkey],temperatures[i][key][subkey]],
-                                        mode: 'lines',
-                                        line: {color: name_map_color},
-                                        legendgroup: key
-                                    });
-                                } else if (subkey === 'target' && temperatures[i][key][subkey] != null && name_map_visible) {
-                                    Plotly.addTraces('plotlytempgraph', {
-                                        name: name_map_identifier,
-                                        x: [timestamp,timestamp],
-                                        y: [temperatures[i][key][subkey],temperatures[i][key][subkey]],
-                                        mode: 'lines',
-                                        line: {
-                                            color: pusher.color(name_map_color).tint(0.5).html(),
-                                            dash: 'dot'
-                                        },
-                                        legendgroup: key
-                                    });
-                                } else {
-                                    // console.log("Don't know what to do: " + key + " - " + subkey + " - " + cutOffCount + " - " + index);
+							if(index < 0 && name_map_visible) {
+                                let point = {
+                                    name: name_map_identifier,
+                                    x: [timestamp,timestamp],
+                                    y: name_map_use_fahrenheit ? [(temperatures[i][key][subkey] !== 0) ? ((temperatures[i][key][subkey]*9/5) +32) : 0, (temperatures[i][key][subkey] !== 0) ? ((temperatures[i][key][subkey]*9/5) +32) : 0] : [temperatures[i][key][subkey],temperatures[i][key][subkey]],
+                                    mode: 'lines',
+                                    line: {color: name_map_color},
+                                    legendgroup: key,
+                                    hoverlabel: {font: {color: name_map_hover_color}},
+                                    hovertemplate: name_map_use_fahrenheit ? '<b>%{customdata:.1f}&#8457;</b> ' : '<b>%{y:.1f}&#8451;</b> ',
+                                    customdata: name_map_use_fahrenheit ? [[(temperatures[i][key][subkey] !== 0) ? ((temperatures[i][key][subkey] * 9 / 5) + 32) : 0]] : [[temperatures[i][key][subkey]]]
+                                };
+                                if (subkey === 'target' && temperatures[i][key][subkey] != null) {
+                                    point.line.color = pusher.color(name_map_color).tint(0.5).html();
+                                    point.line.dash = 'dot';
+                                    if(temperatures[i][key][subkey] === 0){
+                                        point.y[0][0] = 0;
+                                    }
                                 }
+                                if (name_map_use_sub_plot) {
+                                    point.yaxis = "y2";
+                                }
+                                Plotly.addTraces('plotlytempgraph', point);
                             } else if (name_map_visible) {
-								Plotly.extendTraces('plotlytempgraph', {x: [[timestamp]], y: [[temperatures[i][key][subkey]]]}, [index], (cutOffCount > 0) ? cutOffCount : null);
+                                let point = {
+                                    x: [[timestamp]],
+                                    y: name_map_use_fahrenheit ? [[(temperatures[i][key][subkey] != 0) ? ((temperatures[i][key][subkey] * 9 / 5) + 32) : 0]] : [[temperatures[i][key][subkey]]],
+                                    customdata: name_map_use_fahrenheit ? [[(temperatures[i][key][subkey] != 0) ? ((temperatures[i][key][subkey] * 9 / 5) + 32) : 0]] : [[temperatures[i][key][subkey]]]
+                                };
+                                Plotly.extendTraces('plotlytempgraph', point, [index], (cutOffCount > 0) ? cutOffCount : null);
                             } else {
                                 console.log("temperature not being rendered: " + key + " - " + subkey);
 							}
@@ -920,30 +1012,65 @@ $(function() {
         }
 
         self.resize_graph_height = function(){
-		    if(self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()>0){
-		        console.log('plotlytempgraph', 'resizing temp graph to range');
-		        Plotly.relayout('plotlytempgraph',{'yaxis.range': [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()]});
-            } else {
-		        Plotly.relayout('plotlytempgraph',{'yaxis.autorange': true});
+            if(self.settingsViewModel.has_second_axis().length > 0) {
+                self.layout.yaxis.domain = [0, 0.5];
+                self.layout.grid = { rows: 2, columns: 1, pattern: 'independent', roworder: 'bottom to top'};
+                self.layout.yaxis2 = { type:"linear", automargin: true, title: {standoff: 0}, linecolor: 'black', linewidth: 2, mirror: true, domain: [0.5, 1], yaxis: 'y2' };
             }
+
+		    if(self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()>0){
+                self.layout.yaxis.autorange = false;
+                self.layout.yaxis.range = [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height()]
+            } else {
+                self.layout.yaxis.autorange = true;
+            }
+
+            if(self.settingsViewModel.has_second_axis().length > 0) {
+                if(self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height_sub()>0) {
+                    self.layout.yaxis2.autorange = false;
+                    self.layout.yaxis2.range = [0, self.settingsViewModel.settings.plugins.plotlytempgraph.max_graph_height_sub()]
+                } else {
+                    self.layout.yaxis2.autorange = true;
+                }
+            }
+
+
+
 		    if(self.settingsViewModel.settings.plugins.custombackground) {
-                Plotly.relayout('plotlytempgraph',{'images': [{"source": self.settingsViewModel.settings.plugins.custombackground.background_url(),
+                self.layout.images = [{"source": self.settingsViewModel.settings.plugins.custombackground.background_url(),
                                     "xref": "paper",
                                     "yref": "paper",
                                     "x": 0.5,
                                     "y": 0.5,
-                                    "sizex": 1,
-                                    "sizey": 1,
+                                    "sizex": (self.settingsViewModel.settings.plugins.custombackground.background_url() === '/static/img/graph-background.png') ? 0.75 : 1,
+                                    "sizey": (self.settingsViewModel.settings.plugins.custombackground.background_url() === '/static/img/graph-background.png') ? 0.75 : 1,
+                                    "sizing": "fill",
                                     "xanchor": "center",
                                     "yanchor": "middle",
                                     "layer": "below",
                                     "name": "background",
-                                    "itemname": "background"}]});
+                                    "itemname": "background"}];
+                if(self.settingsViewModel.settings.plugins.custombackground.tick_color() !== "") {
+                    self.layout.xaxis.gridcolor = self.settingsViewModel.settings.plugins.custombackground.tick_color();
+                    self.layout.yaxis.gridcolor = self.settingsViewModel.settings.plugins.custombackground.tick_color();
+                    if(self.settingsViewModel.has_second_axis().length > 0) {
+                        self.layout.yaxis2.gridcolor = self.settingsViewModel.settings.plugins.custombackground.tick_color();
+                    }
+                }
+                if(self.settingsViewModel.settings.plugins.custombackground.axes_text_color() !== "") {
+                    self.layout.xaxis.tickfont = {color: self.settingsViewModel.settings.plugins.custombackground.axes_text_color()};
+                    self.layout.yaxis.tickfont = {color: self.settingsViewModel.settings.plugins.custombackground.axes_text_color()};
+                    if(self.settingsViewModel.has_second_axis().length > 0) {
+                        self.layout.yaxis2.tickfont = {color: self.settingsViewModel.settings.plugins.custombackground.axes_text_color()};
+                    }
+                }
             }
             if(self.settingsViewModel.settings.plugins.plotlytempgraph.always_show_legend()) {
                 self.legend_visible(true);
-                Plotly.relayout('plotlytempgraph',{showlegend: true});
+                self.layout.showlegend = true;
             }
+
+            Plotly.relayout('plotlytempgraph',self.layout);
         }
 
 		self.onStartup = function() {
@@ -964,8 +1091,9 @@ $(function() {
 				return
 			}
 			// hack for UI Customizer plugin conflict on sizing and color changes
-            let background_color = ($('body').css('background-color') == 'rgba(0, 0, 0, 0)') ? '#FFFFFF' : $('body').css('background-color');
-			let foreground_color = $('#tabs_content').css('color');
+            // let background_color = ($('#sidebar').css('background-color') == 'rgba(0, 0, 0, 0)') ? '#FFFFFF' : $('#sidebar').css('background-color');
+			let background_color = (self.settingsViewModel.settings.plugins.plotlytempgraph.graph_bg_color() !== "") ? self.settingsViewModel.settings.plugins.plotlytempgraph.graph_bg_color() : ($('.tab-content').css('background-color') == 'rgba(0, 0, 0, 0)') ? '#FFFFFF' : $('.tab-content').css('background-color');
+            let foreground_color = $('#tabs_content').css('color');
 			Plotly.relayout('plotlytempgraph',{
 					plot_bgcolor: background_color,
 					paper_bgcolor: background_color,
