@@ -147,6 +147,21 @@ $(function() {
             }
         };
 
+        self.lookup_hover_template = function(key, subkey) {
+            let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
+               return item.identifier() === key + ' ' + subkey;
+            });
+            if (name_map && name_map.hover_template() !== '') {
+                return name_map.hover_template();
+            } else {
+                if (self.lookup_use_fahrenheit(key, subkey) === true) {
+                    return '<b>%{customdata:.1f}&#8457;</b> ';
+                } else {
+                    return '<b>%{y:.1f}&#8451;</b> ';
+                }
+            }
+        };
+
         self.lookup_use_sub_plot = function(key, subkey) {
             let name_map = ko.utils.arrayFirst(self.settingsViewModel.settings.plugins.plotlytempgraph.name_map(), function(item){
                return item.identifier() === key + ' ' + subkey;
@@ -381,6 +396,7 @@ $(function() {
                                 var name_map_identifier = self.lookup_name(key + ' ' + subkey);
                                 var name_map_color = self.lookup_color(key, subkey);
                                 var name_map_hover_color = self.lookup_hover_color(key, subkey);
+                                var hover_template = self.lookup_hover_template(key, subkey);
                                 var name_map_use_fahrenheit = self.lookup_use_fahrenheit(key, subkey);
                                 var name_map_use_sub_plot = self.lookup_use_sub_plot(key, subkey);
 								var x_data = temperatures.map(function(currentValue, index, arr){return new Date(currentValue.time * 1000);});
@@ -404,7 +420,7 @@ $(function() {
 										return 0;
 									}
 								});
-                                var points = {name: name_map_identifier, x: x_data, y: y_data, mode: 'lines', line: {color: name_map_color}, legendgroup: key, hoverlabel: {font: {color: name_map_hover_color}}, hovertemplate: name_map_use_fahrenheit ? '<b>%{customdata:.1f}&#8457;</b> ' : '<b>%{y:.1f}&#8451;</b> ', customdata: custom_data};
+                                var points = {name: name_map_identifier, x: x_data, y: y_data, mode: 'lines', line: {color: name_map_color}, legendgroup: key, hoverlabel: {font: {color: name_map_hover_color}}, hovertemplate: hover_template, customdata: custom_data};
 								if(subkey === 'target' && y_data.filter(function(el){return el !== null;}).length > 0 && name_map_visible){
                                     points.line.color = pusher.color(name_map_color).tint(0.5).html();
                                     points.line.dash = 'dot';
@@ -453,6 +469,7 @@ $(function() {
                             if(!name_map_visible) {
                                 continue;
                             }
+                            var hover_template = self.lookup_hover_template(key, subkey);
                             var name_map_identifier = self.lookup_name(key + ' ' + subkey);
                             var name_map_color = self.lookup_color(key, subkey);
                             var name_map_hover_color = self.lookup_hover_color(key, subkey);
@@ -468,7 +485,7 @@ $(function() {
                                     line: {color: name_map_color},
                                     legendgroup: key,
                                     hoverlabel: {font: {color: name_map_hover_color}},
-                                    hovertemplate: name_map_use_fahrenheit ? '<b>%{customdata:.1f}&#8457;</b> ' : '<b>%{y:.1f}&#8451;</b> ',
+                                    hovertemplate: hover_template,
                                     customdata: name_map_use_fahrenheit ? [[(temperatures[i][key][subkey] !== 0) ? ((temperatures[i][key][subkey] * 9 / 5) + 32) : 0]] : [[temperatures[i][key][subkey]]]
                                 };
                                 if (subkey === 'target' && temperatures[i][key][subkey] != null) {
