@@ -80,6 +80,7 @@ $(function() {
                 "label": ko.observable(""),
                 "color": ko.observable(""),
                 "hover_color": ko.observable(""),
+                "hover_template": ko.observable(""),
                 "hidden": ko.observable(false),
                 "use_fahrenheit": ko.observable(false),
                 "use_sub_plot": ko.observable(false)});
