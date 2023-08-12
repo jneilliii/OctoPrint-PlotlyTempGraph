@@ -36,7 +36,7 @@ class RPiSysGraph(octoprint.plugin.StartupPlugin, octoprint.plugin.SettingsPlugi
                 self.update_period = None
                 self.convertTo_celsius = None
                 self.convertTo_fahrenheit = None
-                
+
         def get_settings_defaults(self):
                 return {
                         "sensor_name": SENSOR_NAME,
@@ -68,7 +68,7 @@ class RPiSysGraph(octoprint.plugin.StartupPlugin, octoprint.plugin.SettingsPlugi
                         with open(r"/sys/class/thermal/thermal_zone0/temp") as File:
                                         currtemp = float(File.readline())/self.sensor_divisor
 
-                        if currtemp:
+                        if currtemp is not None:
                                 if self.convertTo_fahrenheit:
                                         currtemp = currtemp * 1.8 + 32
                                 elif self.convertTo_celsius:

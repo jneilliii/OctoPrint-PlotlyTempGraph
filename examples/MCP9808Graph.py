@@ -66,9 +66,9 @@ class MCP9808Graph(octoprint.plugin.StartupPlugin, octoprint.plugin.SettingsPlug
                 self.sensor_name = None
                 self.output_precision = None
                 self.convertTo_celsius = None
-                self.convertTo_fahrenheit = None                
+                self.convertTo_fahrenheit = None
                 self.update_period = None
-                
+
         def get_settings_defaults(self):
                 return {
                         "smbus_number": SMBUS_NUMBER,
@@ -86,15 +86,15 @@ class MCP9808Graph(octoprint.plugin.StartupPlugin, octoprint.plugin.SettingsPlug
                self.smbus = smbus.SMBus(self._settings.get(["smbus_number"]))
                 self.i2c_addr = self._settings.get(["i2c_addr"])
                 self.sensor_precision = self._settings.get(["sensor_precision"])
-                self.sensor_name = self._settings.get(["sensor_name"])                
-                self.output_precision = self._settings.get_int(["output_precision"])                
+                self.sensor_name = self._settings.get(["sensor_name"])
+                self.output_precision = self._settings.get_int(["output_precision"])
                 self.convertTo_celsius = self._settings.get_boolean(["convertTo_celsius"])
                 self.convertTo_fahrenheit = self._settings.get_boolean(["convertTo_fahrenheit"])
                 self.update_period = self._settings.get_int(["update_period"])
 
                 mcp9808_config = [MCP9808_REG_CONFIG_CONTCONV, 0x00] #Continuous conversion mode, power-up default
                 self.smbus.write_i2c_block_data(self.i2c_addr, MCP9808_REG_CONFIG, mcp9808_config)
-                self.smbus.write_byte_data(self.i2c_addr, MCP9808_REG_RESOLUTION, self.sensor_precision) #High precision +0.0625 degC, 0x03(03)    
+                self.smbus.write_byte_data(self.i2c_addr, MCP9808_REG_RESOLUTION, self.sensor_precision) #High precision +0.0625 degC, 0x03(03)
 
                 # start repeated timer for checking temp from sensor, runs every 5 seconds
                 self.poll_temps = RepeatedTimer(self.update_period, self.read_temp)
@@ -112,7 +112,7 @@ class MCP9808Graph(octoprint.plugin.StartupPlugin, octoprint.plugin.SettingsPlug
                         if data[0] & 0x10: #Sign bit
                                 currtemp = 256 - currtemp
 
-                        if currtemp:
+                        if currtemp is not None:
                                 if self.convertTo_fahrenheit:
                                         currtemp = currtemp * 1.8 + 32
                                 elif self.convertTo_celsius:

@@ -35,7 +35,7 @@ class SystemCmdGraph(octoprint.plugin.StartupPlugin, octoprint.plugin.SettingsPl
                 self.update_period = None
                 self.convertTo_celsius = None
                 self.convertTo_fahrenheit = None
-                
+
         def get_settings_defaults(self):
                 return {
                         "sensor_name": SENSOR_NAME,
@@ -49,7 +49,7 @@ class SystemCmdGraph(octoprint.plugin.StartupPlugin, octoprint.plugin.SettingsPl
         def on_after_startup(self):
                 self.sensor_name = self._settings.get(["sensor_name"])
                 self.sensor_cmd = self._settings.get(["sensor_cmd"])
-                self.output_precision = self._settings.get_int(["output_precision"])                
+                self.output_precision = self._settings.get_int(["output_precision"])
                 self.convertTo_celsius = self._settings.get_boolean(["convertTo_celsius"])
                 self.convertTo_fahrenheit = self._settings.get_boolean(["convertTo_fahrenheit"])
                 self.update_period = self._settings.get_int(["update_period"])
@@ -64,7 +64,7 @@ class SystemCmdGraph(octoprint.plugin.StartupPlugin, octoprint.plugin.SettingsPl
                 try:
                         currtemp = float(subprocess.check_output(self.sensor_cmd, shell=True))
 
-                        if currtemp:
+                        if currtemp is not None:
                                 if self.convertTo_fahrenheit:
                                         currtemp = currtemp * 1.8 + 32
                                 elif self.convertTo_celsius:
