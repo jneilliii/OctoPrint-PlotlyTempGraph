@@ -63,7 +63,7 @@ class SystemCmdMultiGraph(octoprint.plugin.StartupPlugin, octoprint.plugin.Setti
                         if not hasattr(sensorval, 'convertTo_celsius'):
                                 sensorval['convertTo_fahrenheit'] = False
                         if not hasattr(sensorval, 'convertTo_celsius'):
-                                sensorval['convertTo_celsius'] = False                                
+                                sensorval['convertTo_celsius'] = False
 
                 # start repeated timer for checking temp from sensor, runs every 5 seconds
                 self.poll_temps = RepeatedTimer(self.poll_interval, self.read_temp)
@@ -77,7 +77,7 @@ class SystemCmdMultiGraph(octoprint.plugin.StartupPlugin, octoprint.plugin.Setti
                         try:
                                 current_temp = float(subprocess.check_output(sensorval['cmd'], shell=True))
 
-                                if current_temp:
+                                if current_temp is not None:
                                         if sensorval['convertTo_fahrenheit']:
                                                 current_temp = current_temp * 1.8 + 32
                                         elif sensorval['convertTo_celsius']:
