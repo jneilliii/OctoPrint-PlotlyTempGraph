@@ -129,7 +129,7 @@ $(function() {
             });
             if (!name_map || (name_map && !name_map.hidden())) {
                 if (!name_map){
-                    self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(key + ' ' + subkey), "label": ko.observable(""), "color": ko.observable(""), "hover_color": ko.observable(""), "hidden": ko.observable(false), "use_fahrenheit": ko.observable(false), "use_sub_plot": ko.observable(false)});
+                    self.settingsViewModel.settings.plugins.plotlytempgraph.name_map.push({"identifier": ko.observable(key + ' ' + subkey), "label": ko.observable(""), "color": ko.observable(""), "hover_color": ko.observable(""), "hover_template": ko.observable(""), "hidden": ko.observable(false), "use_fahrenheit": ko.observable(false), "use_sub_plot": ko.observable(false)});
                 }
                 return true;
             } else {
