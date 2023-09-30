@@ -28,21 +28,21 @@ class PlotlytempgraphPlugin(octoprint.plugin.SettingsPlugin,
 				mapping["use_fahrenheit"] = False
 				name_map_new.append(mapping)
 			self._settings.set(["name_map"], name_map_new)
-		if current <= 2:
+		if current is None or current <= 2:
 			# Loop through name map and add new property
 			name_map_new = []
 			for mapping in self._settings.get(['name_map']):
 				mapping["use_sub_plot"] = False
 				name_map_new.append(mapping)
 			self._settings.set(["name_map"], name_map_new)
-		if current <= 3:
+		if current is None or current <= 3:
 			# Loop through name map and add new property
 			name_map_new = []
 			for mapping in self._settings.get(['name_map']):
 				mapping["hover_color"] = ""
 				name_map_new.append(mapping)
 			self._settings.set(["name_map"], name_map_new)
-		if current <= 4:
+		if current is None or current <= 4:
 			# Loop through name map and add new property
 			name_map_new = []
 			for mapping in self._settings.get(['name_map']):
