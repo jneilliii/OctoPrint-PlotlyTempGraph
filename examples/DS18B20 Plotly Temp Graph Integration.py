@@ -33,10 +33,10 @@ class DS18B20Graph(octoprint.plugin.StartupPlugin):
 		while lines[0].strip()[-3:] != 'YES':
 			time.sleep(0.2)
 			lines = f.readlines()
-			equals_pos = lines[1].find('t=')
-			if equals_pos != -1:
-				temp_string = lines[1][equals_pos+2:]
-				temp_c = float(temp_string) / 1000.0
+		equals_pos = lines[1].find('t=')
+		if equals_pos != -1:
+			temp_string = lines[1][equals_pos+2:]
+			temp_c = float(temp_string) / 1000.0
 		self.last_temps["DS18B20"] = (temp_c, None)
 
 	def temp_callback(self, comm, parsed_temps):
