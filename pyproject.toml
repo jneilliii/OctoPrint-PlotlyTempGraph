@@ -1,0 +1,42 @@
+[build-system]
+requires = [
+    "setuptools>=68",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "OctoPrint-PlotlyTempGraph"
+version = "0.1.8"
+description = "Display temperature data in a plotly js graph."
+authors = [
+    { name = "jneilliii", email = "jneilliii+github@gmail.com" },
+]
+requires-python = ">=3.7,<4"
+dependencies = []
+dynamic = [
+    "license",
+]
+
+[project.entry-points."octoprint.plugin"]
+plotlytempgraph = "octoprint_plotlytempgraph"
+
+[project.urls]
+Homepage = "https://github.com/jneilliii/OctoPrint-PlotlyTempGraph"
+
+[project.optional-dependencies]
+develop = [
+    "go-task-bin",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = [
+    "octoprint_plotlytempgraph",
+    "octoprint_plotlytempgraph.*",
+]
